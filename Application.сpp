@@ -1,0 +1,22 @@
+﻿#include "Application.hpp"
+#include "Match3Game.hpp"
+
+namespace GameLauncher {
+
+    Application::Application()
+    {
+        Initialize();
+    }
+
+    void Application::Run()
+    {
+        Match3 game;
+        game.ShowDialog();
+    }
+
+    void Application::Initialize()
+    {
+        // Инициализация приложения
+    }
+
+}

@@ -1,0 +1,46 @@
+﻿#include "GameGrid.hpp"
+
+namespace GameLauncher {
+
+    GameGrid::GameGrid(Panel^ background, int size, int tileSize)
+        : backgroundPanel(background)
+        , gridSize(size)
+        , tileSize(tileSize)
+        , random(gcnew Random())
+    {
+        grid = gcnew array<Button^, 2>(gridSize, gridSize);
+        InitializeGrid();
+    }
+
+    GameGrid::~GameGrid()
+    {
+        // Cleanup if needed
+    }
+
+    void GameGrid::InitializeGrid()
+    {
+        for (int i = 0; i < gridSize; i++)
+        {
+            for (int j = 0; j < gridSize; j++)
+            {
+                CreateTile(i, j);
+            }
+        }
+    }
+
+    void GameGrid::CreateTile(int i, int j)
+    {
+        Button^ btn = gcnew Button();
+        btn->Size = Drawing::Size(tileSize, tileSize);
+        btn->Location = Drawing::Point(j * tileSize - 1, i * tileSize - 1);
+        btn->FlatStyle = FlatStyle::Flat;
+        btn->Tag = System::Drawing::Point(i, j);
+        btn->FlatAppearance->BorderColor = Color::Black;
+        btn->BackColor = GetRandomColor();
+        
+        this->backgroundPanel->Controls->Add(btn);
+        grid[i, j] = btn;
+    }
+
+    // Остальные методы реализации...
+}
