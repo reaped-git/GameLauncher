@@ -19,11 +19,12 @@ AIPlayer::AIPlayer(std::string name, int boardSize)
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::shuffle(m_allPossibleMoves.begin(), m_allPossibleMoves.end(), gen);
+
+	shipSizes = GameBoard::MakeShipSizes(GameBoard::DEFAULT_SHIP_CONFIG);
 }
 
 void AIPlayer::PlaceShips()
 {
-	std::vector<int> shipSizes = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -33,7 +34,7 @@ void AIPlayer::PlaceShips()
 		bool placed = false;
 		int attempts = 0;
 
-		while (!placed && attempts < 1000) // Ограничение на попытки
+		while (!placed && attempts < MAX_ATEMPTS) // Ограничение на попытки
 		{
 			int row = gen() % m_myBoard.GetSize();
 			int col = gen() % m_myBoard.GetSize();
@@ -55,7 +56,7 @@ void AIPlayer::PlaceShips()
 bool AIPlayer::PlaceShipAlternative(int size, std::mt19937& gen)
 {
 	// Альтернативный алгоритм размещения корабля
-	for (int attempt = 0; attempt < 100; attempt++)
+	for (int attempt = 0; attempt < MAX_ATEMPTS; attempt++)
 	{
 		for (bool horizontal : {true, false})
 		{
@@ -97,9 +98,9 @@ Player::MoveType AIPlayer::MakeMove()
 	return { 0, 0 };
 }
 
-void AIPlayer::UpdateAIState(const std::string& result, MoveType coord)
+void AIPlayer::UpdateAIState(Ship::ShotResult result, MoveType coord)
 {
-	if (result == "hit")
+	if (result == Ship::ShotResult::eHit)
 	{
 		m_lastHit = coord;
 
@@ -125,7 +126,7 @@ void AIPlayer::UpdateAIState(const std::string& result, MoveType coord)
 			}
 		}
 	}
-	else if (result == "sunk")
+	else if (result == Ship::ShotResult::eSunk)
 	{
 		// Очищаем потенциальные цели при потоплении корабля
 		m_potentialTargets.clear();

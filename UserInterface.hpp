@@ -1,5 +1,4 @@
-﻿#ifndef USERINTERFACE_HPP
-#define USERINTERFACE_HPP
+﻿#pragma once
 
 #include "Player.hpp"
 #include <string>
@@ -24,5 +23,3 @@ private:
 	// приватные переменные
 	GameManager* m_gameManager;
 };
-
-#endif // USERINTERFACE_HPP

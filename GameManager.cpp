@@ -51,7 +51,7 @@ void GameManager::RunGameLoop()
 
 		// Обработка выстрела
 		GameBoard* enemyBoard = m_currentPlayer->GetEnemyBoard();
-		std::string result = enemyBoard->ReceiveShot(move);
+		Ship::ShotResult result = enemyBoard->ReceiveShot(move);
 
 		// Обновление состояния ИИ если нужно
 		if (aiPlayer)
@@ -63,21 +63,20 @@ void GameManager::RunGameLoop()
 		std::cout << m_currentPlayer->GetName() << " стреляет в ("
 			<< move.first << ", " << move.second << ") - ";
 
-		if (result == "hit")
+		switch (result)
 		{
+		case Ship::ShotResult::eHit:
 			std::cout << "ПОПАДАНИЕ!\n";
-		}
-		else if (result == "sunk")
-		{
+			break;
+		case Ship::ShotResult::eSunk:
 			std::cout << "КОРАБЛЬ ПОТОПЛЕН!\n";
-		}
-		else if (result == "miss")
-		{
+			break;
+		case Ship::ShotResult::eMiss:
 			std::cout << "ПРОМАХ!\n";
-		}
-		else
-		{
+			break;
+		case Ship::ShotResult::eAlreadyShot:
 			std::cout << "Уже стреляли сюда!\n";
+			break;
 		}
 
 		// Показываем состояние после хода
@@ -96,7 +95,7 @@ void GameManager::RunGameLoop()
 		}
 
 		// Смена хода если не попадание
-		if (result != "hit" && result != "sunk")
+		if (result != Ship::ShotResult::eHit && result != Ship::ShotResult::eSunk)
 		{
 			SwitchTurn();
 		}

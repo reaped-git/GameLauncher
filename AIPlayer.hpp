@@ -1,7 +1,7 @@
-﻿#ifndef AIPLAYER_HPP
-#define AIPLAYER_HPP
+﻿#pragma once
 
 #include "Player.hpp"
+#include "GameBoard.hpp"
 #include <vector>
 #include <algorithm>
 #include <random>
@@ -9,6 +9,8 @@
 class AIPlayer : public Player
 {
 public:
+	static const int MAX_ATEMPTS = 100;
+
 	// публичные: переопределение типом
 	using TargetsType = std::vector<MoveType>;
 	using MovesType = std::vector<MoveType>;
@@ -21,7 +23,7 @@ public:
 	// публичные методы
 	void PlaceShips() override;
 	MoveType MakeMove() override;
-	void UpdateAIState(const std::string& result, MoveType coord);
+	void UpdateAIState(Ship::ShotResult result, MoveType coord);
 	bool PlaceShipAlternative(int size, std::mt19937& gen);
 
 private:
@@ -29,6 +31,5 @@ private:
 	MoveType m_lastHit;
 	TargetsType m_potentialTargets;
 	MovesType m_allPossibleMoves;
+	GameBoard::ShipSizesType shipSizes;
 };
-
-#endif // AIPLAYER_HPP

@@ -5,6 +5,7 @@
 HumanPlayer::HumanPlayer(std::string name, int boardSize)
 	: Player(name, boardSize)
 {
+	shipSizes = GameBoard::MakeShipSizes(GameBoard::DEFAULT_SHIP_CONFIG);
 }
 
 void HumanPlayer::PlaceShips()
@@ -40,9 +41,6 @@ void HumanPlayer::ManualPlacement()
 {
 	std::cout << "\n=== РУЧНАЯ РАССТАНОВКА КОРАБЛЕЙ ===\n";
 
-	// Стандартные размеры кораблей для морского боя
-	std::vector<int> shipSizes = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
-
 	for (int size : shipSizes)
 	{
 		bool placed = false;
@@ -51,13 +49,16 @@ void HumanPlayer::ManualPlacement()
 			DisplayBoardState();
 			std::cout << "Разместите корабль размером " << size << "\n";
 
-			std::cout << "Введите начальную координату (ряд столбец, 0-" << m_myBoard.GetSize() - 1 << "): ";
-			int row, col;
-			std::cin >> row >> col;
+			int row, col, orientation;
 
-			std::cout << "Ориентация (0 - горизонтально, 1 - вертикально): ";
-			int orientation;
-			std::cin >> orientation;
+			// Валидация координат
+			row = GetValidatedInput("Введите номер ряда (0-" + std::to_string(m_myBoard.GetSize() - 1) + "): ",
+				0, m_myBoard.GetSize() - 1);
+			col = GetValidatedInput("Введите номер столбца (0-" + std::to_string(m_myBoard.GetSize() - 1) + "): ",
+				0, m_myBoard.GetSize() - 1);
+
+			// Валидация ориентации
+			orientation = GetValidatedInput("Ориентация (0 - горизонтально, 1 - вертикально): ", 0, 1);
 
 			placed = TryPlaceShip(size, row, col, orientation == 0);
 
@@ -76,8 +77,6 @@ void HumanPlayer::AutomaticPlacement()
 {
 	std::cout << "\n=== АВТОМАТИЧЕСКАЯ РАССТАНОВКА КОРАБЛЕЙ ===\n";
 
-	std::vector<int> shipSizes = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
-
 	std::random_device rd;
 	std::mt19937 gen(rd());
 
@@ -86,7 +85,7 @@ void HumanPlayer::AutomaticPlacement()
 		bool placed = false;
 		int attempts = 0;
 
-		while (!placed && attempts < 1000) // Ограничение на попытки
+		while (!placed && attempts < MAX_ATTEMPTS) // Ограничение на попытки
 		{
 			int row = gen() % m_myBoard.GetSize();
 			int col = gen() % m_myBoard.GetSize();
@@ -117,9 +116,12 @@ bool HumanPlayer::TryPlaceShip(int size, int row, int col, bool horizontal)
 Player::MoveType HumanPlayer::MakeMove()
 {
 	std::cout << m_name << ", ваш ход:\n";
-	int row, col;
-	std::cout << "Введите координаты выстрела (ряд столбец): ";
-	std::cin >> row >> col;
+
+	int row = GetValidatedInput("Введите номер ряда (0-" + std::to_string(m_myBoard.GetSize() - 1) + "): ",
+		0, m_myBoard.GetSize() - 1);
+	int col = GetValidatedInput("Введите номер столбца (0-" + std::to_string(m_myBoard.GetSize() - 1) + "): ",
+		0, m_myBoard.GetSize() - 1);
+
 	return { row, col };
 }
 
@@ -147,4 +149,32 @@ void HumanPlayer::DisplayBoardState()
 		std::cout << "\n";
 	}
 	std::cout << "\n";
+}
+
+int HumanPlayer::GetValidatedInput(const std::string& prompt, int minValue, int maxValue)
+{
+	int value;
+	while (true)
+	{
+		std::cout << prompt;
+		std::cin >> value;
+
+		if (std::cin.fail())
+		{
+			std::cin.clear(); // Сбрасываем флаг ошибки
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Очищаем буфер
+			std::cout << "Ошибка: введите целое число!\n";
+		}
+		else if (value < minValue || value > maxValue)
+		{
+			std::cout << "Ошибка: число должно быть в диапазоне от " << minValue << " до " << maxValue << "!\n";
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		}
+		else
+		{
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Очищаем буфер
+			break;
+		}
+	}
+	return value;
 }

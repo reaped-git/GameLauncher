@@ -1,5 +1,4 @@
-﻿#ifndef GAMEMANAGER_HPP
-#define GAMEMANAGER_HPP
+﻿#pragma once
 
 #include "Player.hpp"
 #include "HumanPlayer.hpp"
@@ -34,5 +33,3 @@ private:
 	bool m_gameOver;
 	UserInterface* m_userInterface;
 };
-
-#endif // GAMEMANAGER_HPP

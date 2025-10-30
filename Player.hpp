@@ -1,5 +1,4 @@
-﻿#ifndef PLAYER_HPP
-#define PLAYER_HPP
+﻿#pragma once
 
 #include <string>
 #include <utility>
@@ -32,5 +31,3 @@ protected:
 	GameBoard m_myBoard;
 	GameBoard* m_enemyBoard;
 };
-
-#endif // PLAYER_HPP

@@ -1,8 +1,8 @@
-﻿#ifndef SHIP_HPP
-#define SHIP_HPP
+﻿#pragma once
 
 #include <vector>
 #include <utility>
+#include <stdexcept>
 
 class Ship
 {
@@ -10,6 +10,14 @@ public:
 	// публичные: переопределение типом
 	using CoordinatesType = std::vector<std::pair<int, int>>;
 	using HitsType = std::vector<bool>;
+
+	enum class ShotResult
+	{
+		eMiss = 0,
+		eHit = 1,
+		eSunk = 2,
+		eAlreadyShot = 3
+	};
 
 public:
 	// конструкторы и деконструктор
@@ -32,5 +40,3 @@ private:
 	HitsType m_hits;
 	bool m_isHorizontal;
 };
-
-#endif // SHIP_HPP
