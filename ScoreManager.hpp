@@ -1,31 +1,30 @@
 ﻿#pragma once
 
+#include <array>
+
 namespace GameLauncher {
 
     using namespace System;
     using namespace System::Windows::Forms;
+    using namespace System::Collections::Generic;
 
     /// <summary>
-    /// Класс для управления счетом игрока - отслеживание очков и обновление интерфейса
+    /// Класс для управления счетом игры
+    /// Отвечает за хранение, обновление и отображение счета
     /// </summary>
-    public ref class ScoreManager
+    class ScoreManager
     {
-    public:
-        /// <summary>
-        /// Количество очков за каждую удаленную плитку
-        /// </summary>
-        static const Int64 SCORE_PER_TILE = 1;
-
     private:
-        Int64 score;        // Текущее количество очков
-        Label^ scoreLabel;  // Ссылка на элемент интерфейса для отображения счета
+        static const Int64 SCORE_PER_TILE = 10;
+        std::array<std::pair<Int64, Int64>, 3> bonuses;
+        Int64 currentScore;       // Текущее количество очков
 
     public:
         /// <summary>
         /// Конструктор менеджера счета
         /// </summary>
-        /// <param name="label">Метка для отображения счета</param>
-        ScoreManager(Label^ label);
+        /// <param name="scoreLabel">Метка для отображения счета</param>
+        ScoreManager();
 
         /// <summary>
         /// Деструктор
@@ -33,32 +32,37 @@ namespace GameLauncher {
         ~ScoreManager();
 
         /// <summary>
+        /// Рассчитывает бонусные очки
+        /// </summary>
+        /// <param name="tilesRemoved">Количество удаленных плиток</param>
+        Int64 CalculateBonus(Int64 tilesRemoved);
+
+        /// <summary>
+        /// Добавляет очки на основе количества удаленных плиток
+        /// </summary>
+        /// <param name="tilesRemoved">Количество удаленных плиток</param>
+        String^ AddScoreForTiles(Int64 tilesRemoved);
+
+        /// <summary>
         /// Добавляет очки к текущему счету
         /// </summary>
         /// <param name="points">Количество очков для добавления</param>
-        Void AddScore(Int64 points);
+        String^ AddScore(Int64 points);
 
         /// <summary>
-        /// Сбрасывает счет к нулю
+        /// Сбрасывает счет до нуля
         /// </summary>
         Void ResetScore();
 
         /// <summary>
-        /// Свойство для получения текущего счета (только чтение)
+        /// Возвращает текущий счет
         /// </summary>
-        property Int64 Score{ Int64 get() { return score; } }
-            
-        /// <summary>
-        /// Обновляет отображение счета в интерфейсе
-        /// </summary>
-        Void UpdateDisplay();
+        Int64 GetCurrentScore();
 
-    private:
         /// <summary>
-        /// Форматирует счет для отображения в интерфейсе
+        /// Обновляет отображение счета на форме
         /// </summary>
-        /// <returns>Отформатированная строка счета</returns>
-        String^ FormatScore();
+        String^ FormatScore(Int64 currentScore);
     };
 
 }

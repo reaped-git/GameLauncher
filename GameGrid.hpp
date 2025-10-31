@@ -15,6 +15,7 @@ namespace GameLauncher {
     public:
         static const Int64 DEFAULT_GRID_SIZE = 16;
         static const Int64 DEFAULT_TILE_SIZE = 34;
+        static array<Color>^ colorPalette;
 
     private:
         array<Button^, 2>^ grid;        // Двумерный массив кнопок-плиток
@@ -66,6 +67,16 @@ namespace GameLauncher {
         /// Заполняет пустые (прозрачные) плитки случайными цветами
         /// </summary>
         Void FillEmptyTiles();
+
+        /// <summary>
+        /// Устанавливает обработчик клика для всех плиток
+        /// </summary>
+        Void SetTileClickHandler(EventHandler^ handler);
+
+        /// <summary>
+        /// Сбрасывает выделение всех плиток
+        /// </summary>
+        Void ResetAllSelection();
 
     private:
         /// <summary>

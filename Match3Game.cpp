@@ -1,9 +1,4 @@
 ﻿#include "Match3Game.hpp"
-#include "GameGrid.hpp"
-#include "GameLogic.hpp"
-#include "InputHandler.hpp"
-#include "ScoreManager.hpp"
-#include "UIManager.hpp"
 
 namespace GameLauncher {
 
@@ -18,25 +13,20 @@ namespace GameLauncher {
 
         // Инициализация игровых компонентов
         this->gameGrid = gcnew GameGrid(background, GameGrid::DEFAULT_GRID_SIZE, GameGrid::DEFAULT_TILE_SIZE);
-        this->scoreManager = gcnew ScoreManager(scoreLabel); // Создаем первым
-        this->gameLogic = gcnew GameLogic(gameGrid, scoreManager); // Передаем scoreManager
-        this->inputHandler = gcnew InputHandler(gameLogic);
-        this->uiManager = gcnew UIManager(this);
+        this->scoreManager = new ScoreManager();
+        this->gameLogic = new GameLogic();
+        this->inputHandler = gcnew InputHandler();
 
         // Настройка обработчиков событий для плиток
         SetupTileEventHandlers();
 
-        // Подписка на событие выбора плитки
-        inputHandler->OnTileSelected += gcnew TileSelectedHandler(this, &Match3::OnTileSelected);
-
-        // Инициализация UI
-        uiManager->InitializeColors(Color::White, Color::Black, Color::Gray);
-
         // Начало игры
-        gameLogic->ProcessMatches();      
+        gameLogic->ProcessMatches(gameGrid->GetGrid(), gameGrid->GetSize(), gameGrid);
     }
-    
-    /// Деструктор формы
+
+    /// <summary>
+    /// Деструктор
+    /// </summary>
     Match3::~Match3()
     {
         if (components)
@@ -46,58 +36,71 @@ namespace GameLauncher {
     }
 
     /// <summary>
+    /// Обновляет отображение счета на форме
+    /// </summary>
+    Void Match3::UpdateScoreDisplay(String^ score)
+    {
+        scoreLabel->Text = score;
+    }
+
+    /// <summary>
     /// Настраивает обработчики событий для всех плиток игрового поля
     /// </summary>
     System::Void Match3::SetupTileEventHandlers()
     {
-        auto grid = gameGrid->GetGrid();
-        Int64 gridSize = gameGrid->GetSize();
+        // Устанавливаем обработчик клика для всех плиток
+        gameGrid->SetTileClickHandler(gcnew EventHandler(this, &Match3::OnTileClicked));
+    }
 
-        for (Int64 i = 0; i < gridSize; i++)
+    /// <summary>
+    /// Обработчик клика по плитке
+    /// </summary>
+    System::Void Match3::OnTileClicked(System::Object^ sender, System::EventArgs^ e)
+    {
+        InputHandler::TileClickResult result = inputHandler->HandleTileClick(sender, e, gameLogic);
+
+        switch (result)
         {
-            for (Int64 j = 0; j < gridSize; j++)
+        case InputHandler::TileClickResult::FirstSelected:
+            // Выделяем первую плитку
+            gameGrid->ResetAllSelection();
+            inputHandler->GetFirstSelectedTile()->FlatAppearance->BorderSize = 2;
+            inputHandler->GetFirstSelectedTile()->FlatAppearance->BorderColor = Color::Black;
+            break;
+
+        case InputHandler::TileClickResult::SecondSelected:
+            // Пытаемся обменять две выбранные плитки
+        {
+            Button^ tile1 = inputHandler->GetFirstSelectedTile();
+            Button^ tile2 = inputHandler->GetSecondSelectedTile();
+
+            if (tile1 != nullptr && tile2 != nullptr)
             {
-                Button^ tile = grid[i, j];
-                if (tile != nullptr)
+                Int64 removedTiles = gameLogic->HandleTileSwap(tile1, tile2,
+                    gameGrid->GetGrid(), gameGrid->GetSize(), gameGrid);
+
+                if (removedTiles > 0)
                 {
-                    tile->Click += gcnew EventHandler(inputHandler, &InputHandler::HandleTileClick);
+                    // Успешный обмен - добавляем очки на основе количества удаленных плиток
+                    String^ score = scoreManager->AddScoreForTiles(removedTiles);
+                    UpdateScoreDisplay(score);
                 }
             }
-        }
 
-        // Применяем тему к плиткам после их создания
-        uiManager->ApplyThemeToTiles(grid, gridSize, false); // false = светлая тема
-    }
-    /// <summary>
-    /// Обработчик события выбора плитки (подсветка выбранной плитки)
-    /// </summary>
-    /// <param name="tile">Выбранная плитка</param>
-    System::Void Match3::OnTileSelected(Button^ tile)
-    {
-        // Подсветка выбранной плитки
-        if (tile != nullptr)
-        {
-            tile->FlatAppearance->BorderSize = 2;
-            tile->FlatAppearance->BorderColor = Color::Black;
+            inputHandler->ResetSelection();
+            gameGrid->ResetAllSelection();
         }
-    }
+        break;
 
-    /// <summary>
-    /// Переключает между светлой и темной темами
-    /// </summary>
-    System::Void Match3::ToggleTheme()
-    {
-        if (uiManager->CurrentTheme == UIManager::ColorTheme::eLight)
-        {
-            uiManager->SetTheme(UIManager::ColorTheme::eDark);
-            // Обновляем плитки для темной темы
-            uiManager->ApplyThemeToTiles(gameGrid->GetGrid(), gameGrid->GetSize(), true);
-        }
-        else
-        {
-            uiManager->SetTheme(UIManager::ColorTheme::eLight);
-            // Обновляем плитки для светлой темы
-            uiManager->ApplyThemeToTiles(gameGrid->GetGrid(), gameGrid->GetSize(), false);
+        case InputHandler::TileClickResult::Deselected:
+            // Снимаем выделение
+            gameGrid->ResetAllSelection();
+            break;
+
+        case InputHandler::TileClickResult::None:
+        default:
+            // Ничего не делаем
+            break;
         }
     }
 
@@ -109,7 +112,6 @@ namespace GameLauncher {
         this->toolBar = (gcnew System::Windows::Forms::Panel());
         this->buttonClose = (gcnew System::Windows::Forms::Button());
         this->buttonMinimize = (gcnew System::Windows::Forms::Button());
-        this->buttonInfo = (gcnew System::Windows::Forms::Button());
         this->scoreLabel = (gcnew System::Windows::Forms::Label());
         this->background = (gcnew System::Windows::Forms::Panel());
         this->toolBar->SuspendLayout();
@@ -119,11 +121,10 @@ namespace GameLauncher {
         this->toolBar->BackColor = System::Drawing::Color::White;
         this->toolBar->Controls->Add(this->buttonClose);
         this->toolBar->Controls->Add(this->buttonMinimize);
-        this->toolBar->Controls->Add(this->buttonInfo);
         this->toolBar->Controls->Add(this->scoreLabel);
         this->toolBar->Location = System::Drawing::Point(1, 1);
         this->toolBar->Name = L"toolBar";
-        this->toolBar->Size = System::Drawing::Size(543, 32);
+        this->toolBar->Size = System::Drawing::Size(544, 32);
         this->toolBar->TabIndex = 8;
         this->toolBar->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &Match3::toolBar_MouseDown);
         this->toolBar->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &Match3::toolBar_MouseMove);
@@ -136,7 +137,7 @@ namespace GameLauncher {
         this->buttonClose->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
         this->buttonClose->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 16, System::Drawing::FontStyle::Bold));
         this->buttonClose->ForeColor = System::Drawing::Color::Black;
-        this->buttonClose->Location = System::Drawing::Point(507, 0);
+        this->buttonClose->Location = System::Drawing::Point(508, 0);
         this->buttonClose->Margin = System::Windows::Forms::Padding(0);
         this->buttonClose->Name = L"buttonClose";
         this->buttonClose->Size = System::Drawing::Size(36, 32);
@@ -155,7 +156,7 @@ namespace GameLauncher {
         this->buttonMinimize->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 15.75F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
             static_cast<System::Byte>(0)));
         this->buttonMinimize->ForeColor = System::Drawing::Color::Black;
-        this->buttonMinimize->Location = System::Drawing::Point(470, 0);
+        this->buttonMinimize->Location = System::Drawing::Point(471, 0);
         this->buttonMinimize->Margin = System::Windows::Forms::Padding(0);
         this->buttonMinimize->Name = L"buttonMinimize";
         this->buttonMinimize->Size = System::Drawing::Size(36, 32);
@@ -163,23 +164,8 @@ namespace GameLauncher {
         this->buttonMinimize->Text = L"_";
         this->buttonMinimize->UseVisualStyleBackColor = false;
         this->buttonMinimize->Click += gcnew System::EventHandler(this, &Match3::buttonMinimize_Click);
-
-        // buttonInfo
-        this->buttonInfo->BackColor = System::Drawing::Color::White;
-        this->buttonInfo->FlatAppearance->BorderColor = System::Drawing::Color::Black;
-        this->buttonInfo->FlatAppearance->BorderSize = 0;
-        this->buttonInfo->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-        this->buttonInfo->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-            static_cast<System::Byte>(0)));
-        this->buttonInfo->ForeColor = System::Drawing::Color::Black;
-        this->buttonInfo->Location = System::Drawing::Point(433, 0);
-        this->buttonInfo->Margin = System::Windows::Forms::Padding(0);
-        this->buttonInfo->Name = L"buttonInfo";
-        this->buttonInfo->Size = System::Drawing::Size(36, 32);
-        this->buttonInfo->TabIndex = 8;
-        this->buttonInfo->Text = L"?";
-        this->buttonInfo->UseVisualStyleBackColor = false;
-        this->buttonInfo->Click += gcnew System::EventHandler(this, &Match3::buttonInfo_Click);
+        this->buttonMinimize->MouseEnter += gcnew System::EventHandler(this, &Match3::buttonMinimize_MouseEnter);
+        this->buttonMinimize->MouseLeave += gcnew System::EventHandler(this, &Match3::buttonMinimize_MouseLeave);
 
         // scoreLabel
         this->scoreLabel->Font = (gcnew System::Drawing::Font(L"Impact", 15.75F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
@@ -201,57 +187,99 @@ namespace GameLauncher {
         this->background->ForeColor = System::Drawing::Color::Black;
         this->background->Location = System::Drawing::Point(1, 35);
         this->background->Name = L"background";
-        this->background->Size = System::Drawing::Size(543, 543);
+        this->background->Size = System::Drawing::Size(544, 544);
         this->background->TabIndex = 10;
 
         // Match3
         this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
         this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
         this->BackColor = System::Drawing::Color::Black;
-        this->ClientSize = System::Drawing::Size(545, 579);
+        this->ClientSize = System::Drawing::Size(546, 580);
         this->Controls->Add(this->background);
         this->Controls->Add(this->toolBar);
         this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::None;
         this->Name = L"Match3";
-        this->Text = L"GameForm";
+        this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
+        this->Text = L"Match3";
         this->toolBar->ResumeLayout(false);
         this->ResumeLayout(false);
     }
 
+    /// <summary>
+    /// Обработчик нажатия кнопки закрытия приложения
+    /// </summary>
     System::Void Match3::buttonClose_Click(System::Object^ sender, System::EventArgs^ e)
-    { 
-        this->Close(); 
-    }
-    System::Void Match3::buttonClose_MouseLeave(System::Object^ sender, System::EventArgs^ e)
-    { 
-        this->buttonClose->BackColor = Color::White; 
-    }
-    System::Void Match3::buttonClose_MouseEnter(System::Object^ sender, System::EventArgs^ e) 
-    { 
-        this->buttonClose->BackColor = Color::LightCoral; 
-    }
-    System::Void Match3::buttonMinimize_Click(System::Object^ sender, System::EventArgs^ e) 
     {
-        this->WindowState = System::Windows::Forms::FormWindowState::Minimized; 
+        Application::Exit();
     }
+
+    /// <summary>
+    /// Обработчик нажатия кнопки сворачивания окна
+    /// </summary>
+    System::Void Match3::buttonMinimize_Click(System::Object^ sender, System::EventArgs^ e)
+    {
+        this->WindowState = FormWindowState::Minimized;
+    }
+
+    /// <summary>
+    /// Обработчик наведения курсора на кнопку закрытия
+    /// </summary>
+    System::Void Match3::buttonClose_MouseEnter(System::Object^ sender, System::EventArgs^ e)
+    {
+        this->buttonClose->BackColor = Color::LightCoral;
+    }
+
+    /// <summary>
+    /// Обработчик ухода курсора с кнопки закрытия
+    /// </summary>
+    System::Void Match3::buttonClose_MouseLeave(System::Object^ sender, System::EventArgs^ e)
+    {
+        this->buttonClose->BackColor = Color::White;
+    }
+
+    /// <summary>
+    /// Обработчик наведения курсора на кнопку закрытия
+    /// </summary>
+    System::Void Match3::buttonMinimize_MouseEnter(System::Object^ sender, System::EventArgs^ e)
+    {
+        this->buttonMinimize->BackColor = Color::LightGray;
+    }
+
+    /// <summary>
+    /// Обработчик ухода курсора с кнопки закрытия
+    /// </summary>
+    System::Void Match3::buttonMinimize_MouseLeave(System::Object^ sender, System::EventArgs^ e)
+    {
+        this->buttonMinimize->BackColor = Color::White;
+    }
+
+    /// <summary>
+    /// Обработчик начала перетаскивания окна
+    /// </summary>
     System::Void Match3::toolBar_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
     {
-        dragging = true; start_point = Point(e->X, e->Y);
+        this->dragging = true;
+        this->start_point = Point(e->X, e->Y);
     }
+
+    /// <summary>
+    /// Обработчик перемещения окна при перетаскивании
+    /// </summary>
     System::Void Match3::toolBar_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
     {
-        if (dragging) 
-        { 
-            Point p = PointToScreen(e->Location);
-            Location = Point(p.X - start_point.X, p.Y - start_point.Y); 
+        if (this->dragging)
+        {
+            Point p = PointToScreen(Point(e->X, e->Y));
+            this->Location = Point(p.X - this->start_point.X, p.Y - this->start_point.Y);
         }
     }
+
+    /// <summary>
+    /// Обработчик окончания перетаскивания окна
+    /// </summary>
     System::Void Match3::toolBar_MouseUp(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
     {
-        dragging = false;
+        this->dragging = false;
     }
-    System::Void Match3::buttonInfo_Click(System::Object^ sender, System::EventArgs^ e) 
-    {
-        uiManager->ShowInfoDialog();
-    }
+
 }

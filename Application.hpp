@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "Match3Game.hpp"
+
 namespace GameLauncher {
 
     using namespace System;
@@ -8,7 +10,7 @@ namespace GameLauncher {
     /// <summary>
     /// Главный класс приложения
     /// </summary>
-    public ref class Application
+    class Application
     {
     public:
         /// <summary>

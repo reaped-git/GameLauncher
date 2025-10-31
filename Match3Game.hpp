@@ -1,5 +1,10 @@
 ﻿#pragma once
 
+#include "GameGrid.hpp"
+#include "GameLogic.hpp"
+#include "InputHandler.hpp"
+#include "ScoreManager.hpp"
+
 namespace GameLauncher {
 
     using namespace System;
@@ -9,82 +14,76 @@ namespace GameLauncher {
     using namespace System::Data;
     using namespace System::Drawing;
 
-    // Forward declarations
-    ref class GameGrid;
-    ref class GameLogic;
-    ref class InputHandler;
-    ref class ScoreManager;
-    ref class UIManager;
-
     /// <summary>
-    /// Главная форма игры "Три в ряд" (Match-3)
-    /// Наследуется от System::Windows::Forms::Form для создания оконного приложения
+    /// Главная форма игры "Три в ряд"
+    /// Содержит игровое поле, управляет взаимодействием всех компонентов игры
     /// </summary>
     public ref class Match3 : public System::Windows::Forms::Form
     {
     public:
         /// <summary>
-        /// Конструктор формы - инициализирует все компоненты игры
+        /// Конструктор главной формы
         /// </summary>
         Match3();
+
+        /// <summary>
+        /// Деструктор
+        /// </summary>
         ~Match3();
 
     private:
-        // Элементы пользовательского интерфейса
-        System::Windows::Forms::Panel^ toolBar;           // Панель заголовка для перетаскивания окна
-        System::Windows::Forms::Button^ buttonClose;      // Кнопка закрытия приложения
-        System::Windows::Forms::Button^ buttonMinimize;   // Кнопка сворачивания окна
-        System::Windows::Forms::Button^ buttonInfo;       // Кнопка информации о игре
-        System::Windows::Forms::Label^ scoreLabel;        // Метка для отображения счета
-        System::Windows::Forms::Panel^ background;        // Панель игрового поля
-        System::ComponentModel::Container^ components;    // Контейнер для компонентов формы
+        // Игровые компоненты
+        GameGrid^ gameGrid;           // Управление игровой сеткой
+        GameLogic* gameLogic;         // Логика игры
+        InputHandler^ inputHandler;   // Обработка ввода
+        ScoreManager* scoreManager;   // Управление очками
 
-        // Игровые компоненты - основные модули игры
-        GameGrid^ gameGrid;        // Управление игровой сеткой и плитками
-        GameLogic^ gameLogic;      // Логика проверки совпадений и обработки ходов
-        UIManager^ uiManager;      // Управление интерфейсом и темами
-        InputHandler^ inputHandler;// Обработка ввода пользователя
-        ScoreManager^ scoreManager;// Управление счетом игрока
+        // Элементы интерфейса
+        Panel^ toolBar;               // Верхняя панель с кнопками управления
+        Button^ buttonClose;          // Кнопка закрытия приложения
+        Button^ buttonMinimize;       // Кнопка сворачивания окна
+        Label^ scoreLabel;            // Метка для отображения счета
+        Panel^ background;            // Панель игрового поля
 
-        // Переменные управления окном
+        // Переменные для перетаскивания окна
         Boolean dragging;             // Флаг перетаскивания окна
-        Point start_point;         // Начальная точка перетаскивания
-
-    private:
-        // Объявление методов
+        Point start_point;            // Начальная точка перетаскивания
 
         /// <summary>
-        /// Инициализирует компоненты формы (автогенерируемый код WinForms)
+        /// Обязательная переменная конструктора - контейнер компонентов
+        /// </summary>
+        System::ComponentModel::Container^ components;
+
+        /// <summary>
+        /// Инициализация компонентов формы (автогенерируемый код)
         /// </summary>
         System::Void InitializeComponent();
 
-
         /// <summary>
-        /// Настраивает обработчики событий для всех плиток игрового поля
+        /// Настраивает обработчики событий для всех плиток
         /// </summary>
         System::Void SetupTileEventHandlers();
 
+        /// <summary>
+        /// Обработчик клика по плитке
+        /// </summary>
+        System::Void OnTileClicked(System::Object^ sender, System::EventArgs^ e);
 
         /// <summary>
-        /// Обработчик события выбора плитки (подсветка выбранной плитки)
+        /// Обновляет отображение счета на форме
         /// </summary>
-        /// <param name="tile">Выбранная плитка</param>
-        System::Void OnTileSelected(Button^ tile);
+        Void UpdateScoreDisplay(String^ score);
 
-        /// <summary>
-        /// Обработчик переключения темы (можно вызвать из меню или кнопки)
-        /// </summary>
-        System::Void ToggleTheme();
-
-        // Обработчики событий
+        // Обработчики событий интерфейса
         System::Void buttonClose_Click(System::Object^ sender, System::EventArgs^ e);
-        System::Void buttonClose_MouseLeave(System::Object^ sender, System::EventArgs^ e);
-        System::Void buttonClose_MouseEnter(System::Object^ sender, System::EventArgs^ e);
         System::Void buttonMinimize_Click(System::Object^ sender, System::EventArgs^ e);
+        System::Void buttonClose_MouseEnter(System::Object^ sender, System::EventArgs^ e);
+        System::Void buttonClose_MouseLeave(System::Object^ sender, System::EventArgs^ e);
+        System::Void buttonMinimize_MouseEnter(System::Object^ sender, System::EventArgs^ e);
+        System::Void buttonMinimize_MouseLeave(System::Object^ sender, System::EventArgs^ e);
         System::Void toolBar_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e);
         System::Void toolBar_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e);
         System::Void toolBar_MouseUp(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e);
-        System::Void buttonInfo_Click(System::Object^ sender, System::EventArgs^ e);
     };
 
 }

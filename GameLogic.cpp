@@ -1,26 +1,30 @@
 ﻿#include "GameLogic.hpp"
-#include "GameGrid.hpp"
-#include "ScoreManager.hpp"
 
 namespace GameLauncher {
 
+    /// <summary>
     /// Конструктор игровой логики
-    GameLogic::GameLogic(GameGrid^ grid, ScoreManager^ scoreMgr)
+    /// </summary>
+    GameLogic::GameLogic()
     {
-        gameGrid = grid;
-        scoreManager = scoreMgr; // Сохраняем ссылку на менеджер счета
         initializing = true;
         currentState = GameState::eInitializing;
     }
 
+    /// <summary>
+    /// Деструктор
+    /// </summary>
     GameLogic::~GameLogic()
     {
     }
 
-    Boolean GameLogic::CheckMatches()
+    /// <summary>
+    /// Проверяет и удаляет совпадения (3+ в ряд по горизонтали или вертикали)
+    /// </summary>
+    /// <param name="matchedTiles">Возвращает информацию о совпавших плитках</param>
+    /// <returns>true если найдены совпадения, иначе false</returns>
+    Boolean GameLogic::CheckMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^% matchedTiles)
     {
-        auto grid = gameGrid->GetGrid();
-        Int64 gridSize = gameGrid->GetSize();
         Boolean found = false; // Флаг обнаружения совпадений
 
         // Создаем матрицу для отметки совпавших плиток
@@ -32,25 +36,29 @@ namespace GameLauncher {
                 matched[i][j] = false; // Инициализируем все значения как false
         }
 
-        CheckHorizontalMatches(matched);
-        CheckVerticalMatches(matched);
-        found = HasMatches(matched);
+        CheckHorizontalMatches(grid, gridSize, matched);
+        CheckVerticalMatches(grid, gridSize, matched);
+        found = HasMatches(gridSize, matched);
 
         if (found)
         {
-            RemoveMatchedTiles(matched);
-            DropTiles();
+            matchedTiles = matched; // Возвращаем информацию о совпавших плитках
+            RemoveMatchedTiles(grid, gridSize, matched);
+            DropTiles(grid, gridSize);
+        }
+        else
+        {
+            matchedTiles = nullptr;
         }
 
         return found;
     }
 
-    /// Проверяет горизонтальные совпадения 
-    Void GameLogic::CheckHorizontalMatches(array<array<Boolean>^>^ matched)
+    /// <summary>
+    /// Проверяет горизонтальные совпадения
+    /// </summary>
+    Void GameLogic::CheckHorizontalMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched)
     {
-        auto grid = gameGrid->GetGrid();
-        Int64 gridSize = gameGrid->GetSize();
-
         for (Int64 i = 0; i < gridSize; i++)
         {
             for (Int64 j = 0; j < gridSize - 2; j++)
@@ -69,12 +77,11 @@ namespace GameLauncher {
         }
     }
 
+    /// <summary>
     /// Проверяет вертикальные совпадения
-    Void GameLogic::CheckVerticalMatches(array<array<Boolean>^>^ matched)
+    /// </summary>
+    Void GameLogic::CheckVerticalMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched)
     {
-        auto grid = gameGrid->GetGrid();
-        Int64 gridSize = gameGrid->GetSize();
-
         for (Int64 j = 0; j < gridSize; j++)
         {
             for (Int64 i = 0; i < gridSize - 2; i++)
@@ -93,10 +100,13 @@ namespace GameLauncher {
         }
     }
 
-    Boolean GameLogic::HasMatches(array<array<Boolean>^>^ matched)
+    /// <summary>
+    /// Проверяет, есть ли в матрице отмеченные совпадения
+    /// </summary>
+    /// <param name="matched">Матрица совпадений</param>
+    /// <returns>true если есть хотя бы одно совпадение</returns>
+    Boolean GameLogic::HasMatches(Int64 gridSize, array<array<Boolean>^>^ matched)
     {
-        Int64 gridSize = gameGrid->GetSize();
-
         for (Int64 i = 0; i < gridSize; i++)
         {
             for (Int64 j = 0; j < gridSize; j++)
@@ -110,12 +120,11 @@ namespace GameLauncher {
         return false;
     }
 
-    /// Удаляет плитки, отмеченные в матрице совпадений
-    Void GameLogic::RemoveMatchedTiles(array<array<Boolean>^>^ matched)
+    /// <summary>
+    /// Удаляет плитки, отмеченные как совпавшие
+    /// </summary>
+    Void GameLogic::RemoveMatchedTiles(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched)
     {
-        auto grid = gameGrid->GetGrid();
-        Int64 gridSize = gameGrid->GetSize();
-
         Int64 tilesRemoved = 0;
 
         for (Int64 i = 0; i < gridSize; i++)
@@ -129,43 +138,13 @@ namespace GameLauncher {
                 }
             }
         }
-
-        if (!initializing && tilesRemoved > 0 && scoreManager != nullptr)
-        {
-            // Бонус за количество удаленных плиток за один ход
-            Int64 baseScore = tilesRemoved * ScoreManager::SCORE_PER_TILE;
-
-            // Бонус за комбо (чем больше плиток удалено за один ход - тем больше множитель)
-            Int64 comboBonus = 0;
-
-            // Большой бонус за 15+ плиток
-            if (tilesRemoved >= 15)
-            {
-                comboBonus = tilesRemoved; 
-            }
-            // Бонус за 10-14 плитки
-            else if (tilesRemoved >= 10)
-            {
-                comboBonus = tilesRemoved / 2;
-            }
-            // Бонус за 5-9 плитки
-            else if (tilesRemoved >= 5)
-            {
-                comboBonus = tilesRemoved / 4;
-            }
-
-            Int64 totalScore = baseScore + comboBonus;
-            scoreManager->AddScore(totalScore);
-
-        }
     }
 
+    /// <summary>
     /// Осуществляет падение плиток после удаления совпадений
-    Void GameLogic::DropTiles()
+    /// </summary>
+    Void GameLogic::DropTiles(array<Button^, 2>^ grid, Int64 gridSize)
     {
-        auto grid = gameGrid->GetGrid();
-        Int64 gridSize = gameGrid->GetSize();
-
         for (Int64 j = 0; j < gridSize; j++)
         {
             Int64 emptyRow = gridSize - 1;
@@ -191,30 +170,47 @@ namespace GameLauncher {
         }
     }
 
-    /// Обрабатывает цепную реакцию совпадений до полного их отсутствия
-    Void GameLogic::ProcessMatches()
+    /// <summary>
+    /// Обрабатывает цепную реакцию совпадений до их полного отсутствия
+    /// </summary>
+    Int64 GameLogic::ProcessMatches(array<Button^, 2>^ grid, Int64 gridSize, GameGrid^ gameGrid)
     {
         currentState = GameState::eProcessing; // Блокирует ввод во время обработки
 
+        Int64 totalRemoved = 0;
         Boolean changed;
         do
         {
-            changed = CheckMatches();   // Проверяет и удаляет совпадения
+
+            array<array<Boolean>^>^ matchedTiles;
+            changed = CheckMatches(grid, gridSize, matchedTiles);   // Проверяет и удаляет совпадения
             gameGrid->FillEmptyTiles(); // Заполняет пустоты новыми плитками
 
-            // Добавляет задержку для визуального эффекта
-            if (!initializing)
+            if (changed)
             {
-                Application::DoEvents();
-                Thread::Sleep(200);
+                // Считаем плитки, удаленные на этом шаге цепной реакции
+                Int64 stepRemoved = CountRemovedTiles(matchedTiles, gridSize);
+                totalRemoved += stepRemoved;
+
+                // Добавляет задержку для визуального эффекта
+                if (!initializing)
+                {
+                    Application::DoEvents();
+                    Thread::Sleep(200);
+                }
             }
+
         } while (changed); // Продолжает пока есть изменения
 
         currentState = GameState::ePlaying;
         initializing = false;           // Снимает флаг инициализации
+
+        return totalRemoved;
     }
 
-    /// Проверяет, являются ли две плитки соседними (для допустимости обмена)
+    /// <summary>
+    /// Проверяет, являются ли две плитки соседними
+    /// </summary>
     Boolean GameLogic::AreAdjacent(Button^ a, Button^ b)
     {
         // Получает координаты из Tag плиток
@@ -228,8 +224,10 @@ namespace GameLauncher {
         return (dx + dy) == 1;
     }
 
+    /// <summary>
     /// Обрабатывает попытку обмена двух плиток
-    Void GameLogic::HandleTileSwap(Button^ tile1, Button^ tile2)
+    /// </summary>
+    Int64 GameLogic::HandleTileSwap(Button^ tile1, Button^ tile2, array<Button^, 2>^ grid, Int64 gridSize, GameGrid^ gameGrid)
     {
         if (AreAdjacent(tile1, tile2))
         {
@@ -243,18 +241,44 @@ namespace GameLauncher {
                 Thread::Sleep(200);
             }
 
-            // Проверяет, создал ли обмен совпадения
-            if (!CheckMatches())
+            // Проверяем совпадения после обмена
+            array<array<Boolean>^>^ matchedTiles;
+            if (CheckMatches(grid, gridSize, matchedTiles))
             {
-                // Если нет совпадений - откатывает обмен
-                gameGrid->SwapTiles(tile1, tile2);
+                // Если есть совпадения - обрабатываем цепную реакцию и возвращаем общее количество удаленных плиток
+                Int64 removedCount = CountRemovedTiles(matchedTiles, gridSize);
+
+                // Обрабатываем цепную реакцию и суммируем все удаленные плитки
+                removedCount += ProcessMatches(grid, gridSize, gameGrid);
+
+                return removedCount;
             }
             else
             {
-                // Если есть совпадения - обрабатывает цепную реакци
-                ProcessMatches();
+                // Если нет совпадений - откатываем обмен
+                gameGrid->SwapTiles(tile1, tile2);
+                return 0;
             }
         }
+        return 0;
     }
 
+    /// <summary>
+    /// Подсчитывает количество удаленных плиток
+    /// </summary>
+    Int64 GameLogic::CountRemovedTiles(array<array<Boolean>^>^ matched, Int64 gridSize)
+    {
+        Int64 count = 0;
+        for (Int64 i = 0; i < gridSize; i++)
+        {
+            for (Int64 j = 0; j < gridSize; j++)
+            {
+                if (matched[i][j])
+                {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 }

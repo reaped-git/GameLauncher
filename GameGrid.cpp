@@ -2,23 +2,45 @@
 
 namespace GameLauncher {
 
+    /// <summary>
+    /// Конструктор игровой сетки
+    /// </summary>
+    /// <param name="background">Панель для размещения плиток</param>
+    /// <param name="size">Размер сетки</param>
+    /// <param name="tileSize">Размер одной плитки</param>
     GameGrid::GameGrid(Panel^ background, Int64 size, Int64 tileSize)
     {
         backgroundPanel = background;
         gridSize = size;
-        this->tileSize = tileSize; 
+        this->tileSize = tileSize;
         random = gcnew Random();
         grid = gcnew array<Button^, 2>(gridSize, gridSize);
+
+        // Инициализация статической цветовой палитры по умолчанию
+        colorPalette = gcnew array<Color> {
+                Color::FromArgb(158, 25, 66),    // Темно-красный
+                Color::FromArgb(244, 109, 67),   // Оранжевый
+                Color::FromArgb(254, 224, 139),  // Светло-желтый
+                Color::FromArgb(147, 219, 135),  // Светло-зеленый
+                Color::FromArgb(50, 136, 189),   // Синий
+                Color::FromArgb(94, 79, 162)     // Фиолетовый
+        };
+
 
         InitializeGrid();
     }
 
+    /// <summary>
+    /// Деструктор
+    /// </summary>
     GameGrid::~GameGrid()
     {
     }
 
-    /// Инициализирует игровую сетку
-    void GameGrid::InitializeGrid()
+    /// <summary>
+    /// Инициализирует сетку - создает и размещает все плитки
+    /// </summary>
+    Void GameGrid::InitializeGrid()
     {
         for (Int64 i = 0; i < gridSize; i++)
         {
@@ -27,34 +49,30 @@ namespace GameLauncher {
                 CreateTile(i, j);
             }
         }
-
     }
 
-    /// Возвращает случайный цвет из предопределенной палитры цветов игры
+    /// <summary>
+    /// Генерирует случайный цвет для плитки из предопределенной палитры
+    /// </summary>
     Color GameGrid::GetRandomColor()
     {
-        // Палитра из 6 красивых цветов 
-        array<Color>^ colors = {
-            Color::FromArgb(158, 25, 66),    // Темно-красный
-            Color::FromArgb(244, 109, 67),   // Оранжевый
-            Color::FromArgb(254, 224, 139),  // Светло-желтый
-            Color::FromArgb(147, 219, 135),  // Светло-зеленый
-            Color::FromArgb(50, 136, 189),   // Синий
-            Color::FromArgb(94, 79, 162)     // Фиолетовый
-        };
-        return colors[random->Next(colors->Length)];
+        return colorPalette[random->Next(colorPalette->Length)];
     }
 
-    /// Меняет местами цвета двух плиток (визуальное представление обмена)
-    void GameGrid::SwapTiles(Button^ a, Button^ b)
+    /// <summary>
+    /// Меняет цвета двух плиток местами
+    /// </summary>
+    Void GameGrid::SwapTiles(Button^ a, Button^ b)
     {
         Color temp = a->BackColor;
         a->BackColor = b->BackColor;
         b->BackColor = temp;
     }
 
-    /// Заполняет все прозрачные плитки случайными цветами после удаления совпадений
-    void GameGrid::FillEmptyTiles()
+    /// <summary>
+    /// Заполняет пустые (прозрачные) плитки случайными цветами
+    /// </summary>
+    Void GameGrid::FillEmptyTiles()
     {
         for (Int64 i = 0; i < gridSize; i++)
         {
@@ -68,8 +86,12 @@ namespace GameLauncher {
         }
     }
 
+    /// <summary>
     /// Создает отдельную плитку в указанной позиции сетки
-    void GameGrid::CreateTile(Int64 i, Int64 j)
+    /// </summary>
+    /// <param name="i">Строка в сетке</param>
+    /// <param name="j">Столбец в сетке</param>
+    Void GameGrid::CreateTile(Int64 i, Int64 j)
     {
         Button^ btn = gcnew Button();
         btn->Size = Drawing::Size(tileSize, tileSize);
@@ -79,12 +101,44 @@ namespace GameLauncher {
         btn->FlatAppearance->BorderColor = Color::Black;
         btn->FlatAppearance->BorderSize = 1;
         btn->BackColor = GetRandomColor();
-        btn->Text = ""; 
-        btn->Name = "Tile_" + i + "_" + j; 
+        btn->Text = "";
+        btn->Name = "Tile_" + i + "_" + j;
 
         backgroundPanel->Controls->Add(btn);
         grid[i, j] = btn;
-
     }
 
+    /// <summary>
+    /// Устанавливает обработчик клика для всех плиток
+    /// </summary>
+    Void GameGrid::SetTileClickHandler(EventHandler^ handler)
+    {
+        for (Int64 i = 0; i < gridSize; i++)
+        {
+            for (Int64 j = 0; j < gridSize; j++)
+            {
+                if (grid[i, j] != nullptr)
+                {
+                    grid[i, j]->Click += handler;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Сбрасывает выделение всех плиток
+    /// </summary>
+    Void GameGrid::ResetAllSelection()
+    {
+        for (Int64 i = 0; i < gridSize; i++)
+        {
+            for (Int64 j = 0; j < gridSize; j++)
+            {
+                if (grid[i, j] != nullptr)
+                {
+                    grid[i, j]->FlatAppearance->BorderSize = 1;
+                }
+            }
+        }
+    }
 }

@@ -1,74 +1,88 @@
 ﻿#include "InputHandler.hpp"
-#include "GameLogic.hpp"
 
 namespace GameLauncher {
 
-    InputHandler::InputHandler(GameLogic^ logic)
+    /// <summary>
+    /// Конструктор обработчика ввода
+    /// </summary>
+    InputHandler::InputHandler()
     {
-        gameLogic = logic;
-
         // Изначально ни одна плитка не выбрана
         selectedTile1 = nullptr;
         selectedTile2 = nullptr;
     }
 
+    /// <summary>
+    /// Деструктор
+    /// </summary>
     InputHandler::~InputHandler()
     {
     }
 
-    Void InputHandler::HandleTileClick(Object^ sender, EventArgs^ e)
+    /// <summary>
+    /// Основной обработчик кликов по плиткам
+    /// </summary>
+    InputHandler::TileClickResult InputHandler::HandleTileClick(Object^ sender, EventArgs^ e, GameLogic* gameLogic)
     {
         Button^ clicked = safe_cast<Button^>(sender);
 
-        // Проверяет , можно ли сейчас делать ходы (только в состоянии Playing)
+        // Проверяет, можно ли сейчас делать ходы (только в состоянии Playing)
         if (gameLogic->GetCurrentState() != GameLogic::GameState::ePlaying)
-            return;
+            return TileClickResult::None;
 
-        ProcessTileSelection(clicked);
+        return ProcessTileSelection(clicked);
     }
 
-    Void InputHandler::ProcessTileSelection(Button^ clickedTile)
+    /// <summary>
+    /// Обрабатывает логику выбора плитки (первая, вторая, отмена)
+    /// </summary>
+    InputHandler::TileClickResult InputHandler::ProcessTileSelection(Button^ clickedTile)
     {
         // Первая плитка не выбрана - выбирает текущую
         if (selectedTile1 == nullptr)
         {
             selectedTile1 = clickedTile;
-            selectedTile1->FlatAppearance->BorderSize = 2; // Визуальное выделение
-            OnTileSelected(clickedTile);
+            return TileClickResult::FirstSelected;
         }
 
         // Клик на уже выбранную плитку - отмена выбора
         else if (selectedTile1 == clickedTile)
         {
-            ResetSelection(); 
+            ResetSelection();
+            return TileClickResult::Deselected;
         }
 
-        // Выбрана вторая плитка - попытка обмена
+        // Выбрана вторая плитка - возвращаем обе для обмена
         else
         {
             selectedTile2 = clickedTile;
-            TrySwapTiles();
-            ResetSelection();
+            return TileClickResult::SecondSelected;
         }
     }
 
-    Void InputHandler::TrySwapTiles()
-    {
-        if (selectedTile1 != nullptr && selectedTile2 != nullptr)
-        {
-            gameLogic->HandleTileSwap(selectedTile1, selectedTile2);
-        }
-    }
-
+    /// <summary>
+    /// Сбрасывает текущий выбор плиток
+    /// </summary>
     Void InputHandler::ResetSelection()
     {
-        if (selectedTile1 != nullptr)
-        {
-            selectedTile1->FlatAppearance->BorderSize = 1;
-        }
-
         selectedTile1 = nullptr;
         selectedTile2 = nullptr;
+    }
+
+    /// <summary>
+    /// Возвращает первую выбранную плитку
+    /// </summary>
+    Button^ InputHandler::GetFirstSelectedTile()
+    {
+        return selectedTile1;
+    }
+
+    /// <summary>
+    /// Возвращает вторую выбранную плитку
+    /// </summary>
+    Button^ InputHandler::GetSecondSelectedTile()
+    {
+        return selectedTile2;
     }
 
 }

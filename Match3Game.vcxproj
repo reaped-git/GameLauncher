@@ -83,7 +83,7 @@
     <Link>
       <AdditionalDependencies />
       <SubSystem>Windows</SubSystem>
-      <EntryPointSymbol>Main</EntryPointSymbol>
+      <EntryPointSymbol>main</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -111,6 +111,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies />
+      <EntryPointSymbol>main</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -127,7 +128,6 @@
     <ClInclude Include="InputHandler.hpp" />
     <ClInclude Include="Match3Game.hpp" />
     <ClInclude Include="ScoreManager.hpp" />
-    <ClInclude Include="UIManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -137,7 +137,6 @@
     <ClCompile Include="Match3Game.cpp" />
     <ClCompile Include="ScoreManager.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="UIManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,41 +1,37 @@
 ﻿#pragma once
 
+#include "GameLogic.hpp"
+
 namespace GameLauncher {
 
     using namespace System;
     using namespace System::Windows::Forms;
-
-    ref class GameLogic; // Forward declaration
-
-    // Делегейт для события выбора плитки
-    /// <summary>
-    /// Делегейт для обработки события выбора плитки
-    /// </summary>
-    /// <param name="tile">Выбранная плитка</param>
-    public delegate Void TileSelectedHandler(Button^ tile);
 
     /// <summary>
     /// Класс обработки ввода пользователя - управляет выбором и обменом плиток
     /// </summary>
     public ref class InputHandler
     {
-    public:
-        /// <summary>
-        /// Событие выбора плитки (для визуальной обратной связи)
-        /// </summary>
-        event TileSelectedHandler^ OnTileSelected;
-
     private:
         Button^ selectedTile1;    // Первая выбранная плитка
         Button^ selectedTile2;    // Вторая выбранная плитка
-        GameLogic^ gameLogic;     // Ссылка на игровую логику для проверки допустимости ходов
 
     public:
+
+        // Состояния плитки
+        enum class TileClickResult 
+        {
+            None = 0,           // Ничего не произошло
+            FirstSelected = 1,   // Выбрана первая плитка
+            SecondSelected = 2,  // Выбрана вторая плитка
+            Deselected = 3      // Снято выделение
+
+        };
+
         /// <summary>
         /// Конструктор обработчика ввода
         /// </summary>
-        /// <param name="logic">Игровая логика для проверки ходов</param>
-        InputHandler(GameLogic^ logic);
+        InputHandler();
 
         /// <summary>
         /// Деструктор
@@ -45,23 +41,28 @@ namespace GameLauncher {
         /// <summary>
         /// Основной обработчик кликов по плиткам
         /// </summary>
-        Void HandleTileClick(Object^ sender, EventArgs^ e);
+        TileClickResult HandleTileClick(Object^ sender, EventArgs^ e, GameLogic* gameLogic);
 
         /// <summary>
         /// Сбрасывает текущий выбор плиток
         /// </summary>
         Void ResetSelection();
 
+        /// <summary>
+        /// Возвращает первую выбранную плитку
+        /// </summary>
+        Button^ GetFirstSelectedTile();
+
+        /// <summary>
+        /// Возвращает вторую выбранную плитку
+        /// </summary>
+        Button^ GetSecondSelectedTile();
+
     private:
         /// <summary>
         /// Обрабатывает логику выбора плитки (первая, вторая, отмена)
         /// </summary>
-        Void ProcessTileSelection(Button^ clickedTile);
-
-        /// <summary>
-        /// Пытается обменять выбранные плитки
-        /// </summary>
-        Void TrySwapTiles();
+        TileClickResult ProcessTileSelection(Button^ clickedTile);
     };
 
 }

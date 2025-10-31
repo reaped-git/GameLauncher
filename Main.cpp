@@ -10,7 +10,7 @@ using namespace System::Windows::Forms;
 /// </summary>
 /// <param name="args">Аргументы командной строки (не используются)</param>
 /// <returns>Код завершения приложения</returns>
-int Main(array<String^>^) {
+int main(array<String^>^) {
     // Настройка совместимости текстового рендеринга для современных версий .NET
     Application::SetCompatibleTextRenderingDefault(false);
 

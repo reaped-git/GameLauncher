@@ -1,5 +1,4 @@
 ﻿#include "Application.hpp"
-#include "Match3Game.hpp"
 
 namespace GameLauncher {
 
