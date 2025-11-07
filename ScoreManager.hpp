@@ -29,7 +29,7 @@ namespace GameLauncher {
         /// <summary>
         /// Деструктор
         /// </summary>
-        ~ScoreManager();
+        ~ScoreManager() = default;
 
         /// <summary>
         /// Рассчитывает бонусные очки

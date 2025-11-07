@@ -19,6 +19,11 @@ namespace GameLauncher {
         Application();
 
         /// <summary>
+        /// Деструктор приложения
+        /// </summary>
+        ~Application() = default;
+
+        /// <summary>
         /// Запуск основного цикла приложения
         /// </summary>
         Void Run();

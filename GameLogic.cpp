@@ -12,13 +12,6 @@ namespace GameLauncher {
     }
 
     /// <summary>
-    /// Деструктор
-    /// </summary>
-    GameLogic::~GameLogic()
-    {
-    }
-
-    /// <summary>
     /// Проверяет и удаляет совпадения (3+ в ряд по горизонтали или вертикали)
     /// </summary>
     /// <param name="matchedTiles">Возвращает информацию о совпавших плитках</param>
@@ -64,15 +57,14 @@ namespace GameLauncher {
             for (Int64 j = 0; j < gridSize - 2; j++)
             {
                 Color c = grid[i, j]->BackColor;
-                if (c != Color::Transparent &&
-                    c == grid[i, j + 1]->BackColor &&
-                    c == grid[i, j + 2]->BackColor)
-                {
-                    // Помечаем все три совпавшие плитки
-                    matched[i][j] = true;
-                    matched[i][j + 1] = true;
-                    matched[i][j + 2] = true;
-                }
+                if (c == Color::Transparent) continue;
+                if (c != grid[i, j + 1]->BackColor ||
+                    c != grid[i, j + 2]->BackColor) continue;
+
+                // Помечаем все три совпавшие плитки
+                matched[i][j] = true;
+                matched[i][j + 1] = true;
+                matched[i][j + 2] = true;
             }
         }
     }
@@ -87,9 +79,9 @@ namespace GameLauncher {
             for (Int64 i = 0; i < gridSize - 2; i++)
             {
                 Color c = grid[i, j]->BackColor;
-                if (c != Color::Transparent &&
-                    c == grid[i + 1, j]->BackColor &&
-                    c == grid[i + 2, j]->BackColor)
+                if (c == Color::Transparent) continue;
+                if (c != grid[i + 1, j]->BackColor ||
+                    c != grid[i + 2, j]->BackColor) continue;
                 {
                     // Помечаем все три совпавшие плитки
                     matched[i][j] = true;
@@ -163,11 +155,10 @@ namespace GameLauncher {
         }
 
         // Добавляет задержку для визуального эффекта
-        if (!initializing)
-        {
-            Application::DoEvents();
-            Thread::Sleep(200);
-        }
+        if (initializing) return;
+
+        Application::DoEvents();
+        Thread::Sleep(200);
     }
 
     /// <summary>
@@ -181,10 +172,9 @@ namespace GameLauncher {
         Boolean changed;
         do
         {
-
             array<array<Boolean>^>^ matchedTiles;
-            changed = CheckMatches(grid, gridSize, matchedTiles);   // Проверяет и удаляет совпадения
             gameGrid->FillEmptyTiles(); // Заполняет пустоты новыми плитками
+            changed = CheckMatches(grid, gridSize, matchedTiles);   // Проверяет и удаляет совпадения
 
             if (changed)
             {
@@ -193,17 +183,16 @@ namespace GameLauncher {
                 totalRemoved += stepRemoved;
 
                 // Добавляет задержку для визуального эффекта
-                if (!initializing)
-                {
-                    Application::DoEvents();
-                    Thread::Sleep(200);
-                }
+                if (initializing) continue;
+
+                Application::DoEvents();
+                Thread::Sleep(200);
             }
 
-        } while (changed); // Продолжает пока есть изменения
+        } while (changed);  // Продолжает пока есть изменения
 
         currentState = GameState::ePlaying;
-        initializing = false;           // Снимает флаг инициализации
+        initializing = false;   // Снимает флаг инициализации
 
         return totalRemoved;
     }

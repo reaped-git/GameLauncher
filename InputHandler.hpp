@@ -36,7 +36,7 @@ namespace GameLauncher {
         /// <summary>
         /// Деструктор
         /// </summary>
-        ~InputHandler();
+        ~InputHandler() { };
 
         /// <summary>
         /// Основной обработчик кликов по плиткам

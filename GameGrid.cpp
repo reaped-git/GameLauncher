@@ -17,7 +17,7 @@ namespace GameLauncher {
         grid = gcnew array<Button^, 2>(gridSize, gridSize);
 
         // Инициализация статической цветовой палитры по умолчанию
-        colorPalette = gcnew array<Color> {
+        colorPalette = gcnew array<Color>{
                 Color::FromArgb(158, 25, 66),    // Темно-красный
                 Color::FromArgb(244, 109, 67),   // Оранжевый
                 Color::FromArgb(254, 224, 139),  // Светло-желтый
@@ -28,13 +28,6 @@ namespace GameLauncher {
 
 
         InitializeGrid();
-    }
-
-    /// <summary>
-    /// Деструктор
-    /// </summary>
-    GameGrid::~GameGrid()
-    {
     }
 
     /// <summary>
@@ -141,4 +134,5 @@ namespace GameLauncher {
             }
         }
     }
+
 }

@@ -36,7 +36,7 @@ namespace GameLauncher {
         /// <summary>
         /// Деструктор
         /// </summary>
-        ~GameGrid();
+        ~GameGrid() { };
 
         /// <summary>
         /// Возвращает двумерный массив плиток

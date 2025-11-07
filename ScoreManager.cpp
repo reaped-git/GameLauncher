@@ -18,10 +18,6 @@ namespace GameLauncher {
          } };
     }
 
-    ScoreManager::~ScoreManager()
-    {
-    }
-
     /// <summary>
     /// Добавляет очки к текущему счету
     /// </summary>

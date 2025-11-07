@@ -43,7 +43,7 @@ namespace GameLauncher {
         /// <summary>
         /// Деструктор
         /// </summary>
-        ~GameLogic();
+        ~GameLogic() = default;
 
         /// <summary>
         /// Проверяет и удаляет совпадения (3+ в ряд по горизонтали или вертикали)
