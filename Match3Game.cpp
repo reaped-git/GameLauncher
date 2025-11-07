@@ -63,7 +63,7 @@ namespace GameLauncher {
         {
         case InputHandler::TileClickResult::FirstSelected:
             // Выделяем первую плитку
-            gameGrid->ResetAllSelection();
+            gameGrid->ForEachTile(gcnew Action<Button^>(gameGrid, &GameGrid::ResetTileSelection));
             inputHandler->GetFirstSelectedTile()->FlatAppearance->BorderSize = 2;
             inputHandler->GetFirstSelectedTile()->FlatAppearance->BorderColor = Color::Black;
             break;
@@ -88,13 +88,13 @@ namespace GameLauncher {
             }
 
             inputHandler->ResetSelection();
-            gameGrid->ResetAllSelection();
+            gameGrid->ForEachTile(gcnew Action<Button^>(gameGrid, &GameGrid::ResetTileSelection));
         }
         break;
 
         case InputHandler::TileClickResult::Deselected:
             // Снимаем выделение
-            gameGrid->ResetAllSelection();
+            gameGrid->ForEachTile(gcnew Action<Button^>(gameGrid, &GameGrid::ResetTileSelection));
             break;
 
         case InputHandler::TileClickResult::None:

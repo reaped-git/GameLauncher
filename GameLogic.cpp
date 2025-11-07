@@ -11,23 +11,34 @@ namespace GameLauncher {
         currentState = GameState::eInitializing;
     }
 
+    template<typename Func>
+    void GameLogic::ForEachMatched(Int64 gridSize, 
+        const std::vector<std::vector<bool>>& matched, Func func) {
+        for (Int64 i = 0; i < gridSize; i++) {
+            for (Int64 j = 0; j < gridSize; j++) {
+                func(i, j, matched[i][j]);
+            }
+        }
+    }
+
+    template<typename Func>
+    void GameLogic::ForEachGrid(array<Button^, 2>^ grid, Int64 gridSize, Func func) {
+        for (Int64 i = 0; i < gridSize; i++) {
+            for (Int64 j = 0; j < gridSize; j++) {
+                func(i, j, grid);
+            }
+        }
+    }
+
     /// <summary>
     /// Проверяет и удаляет совпадения (3+ в ряд по горизонтали или вертикали)
     /// </summary>
-    /// <param name="matchedTiles">Возвращает информацию о совпавших плитках</param>
-    /// <returns>true если найдены совпадения, иначе false</returns>
-    Boolean GameLogic::CheckMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^% matchedTiles)
+    Boolean GameLogic::CheckMatches(array<Button^, 2>^ grid, Int64 gridSize, std::vector<std::vector<bool>>& matchedTiles)
     {
-        Boolean found = false; // Флаг обнаружения совпадений
+        Boolean found = false;
 
         // Создаем матрицу для отметки совпавших плиток
-        array<array<Boolean>^>^ matched = gcnew array<array<Boolean>^>(gridSize);
-        for (Int64 i = 0; i < gridSize; i++)
-        {
-            matched[i] = gcnew array<Boolean>(gridSize);
-            for (Int64 j = 0; j < gridSize; j++)
-                matched[i][j] = false; // Инициализируем все значения как false
-        }
+        std::vector<std::vector<bool>> matched(gridSize, std::vector<bool>(gridSize, false));
 
         CheckHorizontalMatches(grid, gridSize, matched);
         CheckVerticalMatches(grid, gridSize, matched);
@@ -39,10 +50,6 @@ namespace GameLauncher {
             RemoveMatchedTiles(grid, gridSize, matched);
             DropTiles(grid, gridSize);
         }
-        else
-        {
-            matchedTiles = nullptr;
-        }
 
         return found;
     }
@@ -50,86 +57,62 @@ namespace GameLauncher {
     /// <summary>
     /// Проверяет горизонтальные совпадения
     /// </summary>
-    Void GameLogic::CheckHorizontalMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched)
+    Void GameLogic::CheckHorizontalMatches(array<Button^, 2>^ grid, 
+        Int64 gridSize, std::vector<std::vector<bool>>& matched)
     {
-        for (Int64 i = 0; i < gridSize; i++)
-        {
-            for (Int64 j = 0; j < gridSize - 2; j++)
-            {
-                Color c = grid[i, j]->BackColor;
-                if (c == Color::Transparent) continue;
-                if (c != grid[i, j + 1]->BackColor ||
-                    c != grid[i, j + 2]->BackColor) continue;
+        ForEachGrid(grid, gridSize, [&](Int64 i, Int64 j, array<Button^, 2>^ gridRef) {
+            if (j < gridSize - 2) {
+                Color c = gridRef[i, j]->BackColor;
+                if (c == Color::Transparent) return;
+                if (c != gridRef[i, j + 1]->BackColor || c != gridRef[i, j + 2]->BackColor) return;
 
-                // Помечаем все три совпавшие плитки
                 matched[i][j] = true;
                 matched[i][j + 1] = true;
                 matched[i][j + 2] = true;
             }
-        }
+            });
     }
 
     /// <summary>
     /// Проверяет вертикальные совпадения
     /// </summary>
-    Void GameLogic::CheckVerticalMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched)
+    Void GameLogic::CheckVerticalMatches(array<Button^, 2>^ grid, Int64 gridSize, std::vector<std::vector<bool>>& matched)
     {
-        for (Int64 j = 0; j < gridSize; j++)
-        {
-            for (Int64 i = 0; i < gridSize - 2; i++)
-            {
-                Color c = grid[i, j]->BackColor;
-                if (c == Color::Transparent) continue;
-                if (c != grid[i + 1, j]->BackColor ||
-                    c != grid[i + 2, j]->BackColor) continue;
-                {
-                    // Помечаем все три совпавшие плитки
-                    matched[i][j] = true;
-                    matched[i + 1][j] = true;
-                    matched[i + 2][j] = true;
-                }
+        ForEachGrid(grid, gridSize, [&](Int64 i, Int64 j, array<Button^, 2>^ gridRef) {
+            if (i < gridSize - 2) {
+                Color c = gridRef[i, j]->BackColor;
+                if (c == Color::Transparent) return;
+                if (c != gridRef[i + 1, j]->BackColor || c != gridRef[i + 2, j]->BackColor) return;
+
+                matched[i][j] = true;
+                matched[i + 1][j] = true;
+                matched[i + 2][j] = true;
             }
-        }
+            });
     }
 
     /// <summary>
     /// Проверяет, есть ли в матрице отмеченные совпадения
     /// </summary>
-    /// <param name="matched">Матрица совпадений</param>
-    /// <returns>true если есть хотя бы одно совпадение</returns>
-    Boolean GameLogic::HasMatches(Int64 gridSize, array<array<Boolean>^>^ matched)
+    Boolean GameLogic::HasMatches(Int64 gridSize, const std::vector<std::vector<bool>>& matched)
     {
-        for (Int64 i = 0; i < gridSize; i++)
-        {
-            for (Int64 j = 0; j < gridSize; j++)
-            {
-                if (matched[i][j])
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
+        Boolean found = false;
+        ForEachMatched(gridSize, matched, [&found](Int64 i, Int64 j, bool isMatched) {
+            if (isMatched) found = true;
+            });
+        return found;
     }
 
     /// <summary>
     /// Удаляет плитки, отмеченные как совпавшие
     /// </summary>
-    Void GameLogic::RemoveMatchedTiles(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched)
+    Void GameLogic::RemoveMatchedTiles(array<Button^, 2>^ grid, Int64 gridSize, const std::vector<std::vector<bool>>& matched)
     {
-        Int64 tilesRemoved = 0;
-
-        for (Int64 i = 0; i < gridSize; i++)
-        {
-            for (Int64 j = 0; j < gridSize; j++)
-            {
-                if (matched[i][j])
-                {
-                    grid[i, j]->BackColor = Color::Transparent;
-                    tilesRemoved++;
-                }
+        ForEachGrid(grid, gridSize, [&](Int64 i, Int64 j, array<Button^, 2>^ gridRef) {
+            if (matched[i][j]) {
+                gridRef[i, j]->BackColor = Color::Transparent;
             }
-        }
+            });
     }
 
     /// <summary>
@@ -137,15 +120,14 @@ namespace GameLauncher {
     /// </summary>
     Void GameLogic::DropTiles(array<Button^, 2>^ grid, Int64 gridSize)
     {
-        for (Int64 j = 0; j < gridSize; j++)
+        for (Int64 j = 0; j < gridSize; j++) 
         {
             Int64 emptyRow = gridSize - 1;
-            for (Int64 i = gridSize - 1; i >= 0; i--)
+            for (Int64 i = gridSize - 1; i >= 0; i--) 
             {
-                if (grid[i, j]->BackColor != Color::Transparent)
+                if (grid[i, j]->BackColor != Color::Transparent) 
                 {
-                    if (i != emptyRow)
-                    {
+                    if (i != emptyRow) {
                         grid[emptyRow, j]->BackColor = grid[i, j]->BackColor;
                         grid[i, j]->BackColor = Color::Transparent;
                     }
@@ -154,9 +136,7 @@ namespace GameLauncher {
             }
         }
 
-        // Добавляет задержку для визуального эффекта
         if (initializing) return;
-
         Application::DoEvents();
         Thread::Sleep(200);
     }
@@ -172,8 +152,8 @@ namespace GameLauncher {
         Boolean changed;
         do
         {
-            array<array<Boolean>^>^ matchedTiles;
-            gameGrid->FillEmptyTiles(); // Заполняет пустоты новыми плитками
+            std::vector<std::vector<bool>> matchedTiles;
+            gameGrid->ForEachTile(gcnew Action<Button^>(gameGrid, &GameGrid::FillEmptyTile));
             changed = CheckMatches(grid, gridSize, matchedTiles);   // Проверяет и удаляет совпадения
 
             if (changed)
@@ -231,7 +211,7 @@ namespace GameLauncher {
             }
 
             // Проверяем совпадения после обмена
-            array<array<Boolean>^>^ matchedTiles;
+            std::vector<std::vector<bool>> matchedTiles;
             if (CheckMatches(grid, gridSize, matchedTiles))
             {
                 // Если есть совпадения - обрабатываем цепную реакцию и возвращаем общее количество удаленных плиток
@@ -255,19 +235,13 @@ namespace GameLauncher {
     /// <summary>
     /// Подсчитывает количество удаленных плиток
     /// </summary>
-    Int64 GameLogic::CountRemovedTiles(array<array<Boolean>^>^ matched, Int64 gridSize)
+    Int64 GameLogic::CountRemovedTiles(const std::vector<std::vector<bool>>& matched, Int64 gridSize)
     {
         Int64 count = 0;
-        for (Int64 i = 0; i < gridSize; i++)
-        {
-            for (Int64 j = 0; j < gridSize; j++)
-            {
-                if (matched[i][j])
-                {
-                    count++;
-                }
-            }
-        }
+        ForEachMatched(gridSize, matched, [&count](Int64 i, Int64 j, bool isMatched) {
+            if (isMatched) count++;
+            });
         return count;
     }
+
 }

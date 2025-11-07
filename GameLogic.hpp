@@ -2,6 +2,8 @@
 
 #include "GameGrid.hpp"
 #include "ScoreManager.hpp"
+#include <vector>
+#include <functional>
 
 namespace GameLauncher {
 
@@ -9,10 +11,6 @@ namespace GameLauncher {
     using namespace System::Windows::Forms;
     using namespace System::Drawing;
     using namespace System::Threading;
-    using namespace System::ComponentModel;
-    using namespace System::Collections;
-    using namespace System::Data;
-    using namespace System::Drawing;
 
     /// <summary>
     /// Класс игровой логики - отвечает за проверку совпадений, обработку ходов и управление состоянием игры
@@ -50,7 +48,8 @@ namespace GameLauncher {
         /// </summary>
         /// <param name="matchedTiles">Возвращает информацию о совпавших плитках</param>
         /// <returns>true если найдены совпадения, иначе false</returns>
-        Boolean CheckMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^% matchedTiles);
+        Boolean CheckMatches(array<Button^, 2>^ grid, Int64 gridSize, 
+            std::vector<std::vector<bool>>& matchedTiles);
 
         /// <summary>
         /// Обрабатывает цепную реакцию совпадений до их полного отсутствия
@@ -65,7 +64,8 @@ namespace GameLauncher {
         /// <summary>
         /// Обрабатывает попытку обмена двух плиток
         /// </summary>
-        Int64 HandleTileSwap(Button^ tile1, Button^ tile2, array<Button^, 2>^ grid, Int64 gridSize, GameGrid^ gameGrid);
+        Int64 HandleTileSwap(Button^ tile1, Button^ tile2, array<Button^, 2>^ grid, 
+            Int64 gridSize, GameGrid^ gameGrid);
 
         /// <summary>
         /// Возвращает текущее состояние игры
@@ -77,28 +77,34 @@ namespace GameLauncher {
         /// </summary>
         Void SetCurrentState(GameState state) { currentState = state; }
 
+        /// <summary>
+        /// Проверяет, есть ли совпадения в матрице
+        /// </summary>
+        Boolean HasMatches(Int64 gridSize, const std::vector<std::vector<bool>>& matched);
+
+        /// <summary>
+        /// Удаляет совпавшие плитки
+        /// </summary>
+        Void RemoveMatchedTiles(array<Button^, 2>^ grid, Int64 gridSize, 
+            const std::vector<std::vector<bool>>& matched);
+
+        /// <summary>
+        /// Подсчитывает количество удаленных плиток
+        /// </summary>
+        Int64 CountRemovedTiles(const std::vector<std::vector<bool>>& matched, Int64 gridSize);
+
     private:
         /// <summary>
         /// Проверяет горизонтальные совпадения
         /// </summary>
-        Void CheckHorizontalMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched);
+        Void CheckHorizontalMatches(array<Button^, 2>^ grid, Int64 gridSize, 
+            std::vector<std::vector<bool>>& matched);
 
         /// <summary>
         /// Проверяет вертикальные совпадения
         /// </summary>
-        Void CheckVerticalMatches(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched);
-
-        /// <summary>
-        /// Проверяет, есть ли в матрице отмеченные совпадения
-        /// </summary>
-        /// <param name="matched">Матрица совпадений</param>
-        /// <returns>true если есть хотя бы одно совпадение</returns>
-        Boolean HasMatches(Int64 gridSize, array<array<Boolean>^>^ matched);
-
-        /// <summary>
-        /// Удаляет плитки, отмеченные как совпавшие
-        /// </summary>
-        Void RemoveMatchedTiles(array<Button^, 2>^ grid, Int64 gridSize, array<array<Boolean>^>^ matched);
+        Void CheckVerticalMatches(array<Button^, 2>^ grid, Int64 gridSize, 
+            std::vector<std::vector<bool>>& matched);
 
         /// <summary>
         /// Осуществляет падение плиток после удаления совпадений
@@ -106,8 +112,25 @@ namespace GameLauncher {
         Void DropTiles(array<Button^, 2>^ grid, Int64 gridSize);
 
         /// <summary>
-        /// Подсчитывает количество удаленных плиток
+        /// Итерация с matched
         /// </summary>
-        Int64 CountRemovedTiles(array<array<Boolean>^>^ matched, Int64 gridSize);
+        /// <typeparam name="Func"></typeparam>
+        /// <param name="gridSize"></param>
+        /// <param name="matched"></param>
+        /// <param name="func"></param>
+        template<typename Func>
+        void ForEachMatched(Int64 gridSize, 
+            const std::vector<std::vector<bool>>& matched, Func func);
+
+        /// <summary>
+        /// Итерация с Grid
+        /// </summary>
+        /// <typeparam name="Func"></typeparam>
+        /// <param name="grid"></param>
+        /// <param name="gridSize"></param>
+        /// <param name="func"></param>
+        template<typename Func>
+        void ForEachGrid(array<Button^, 2>^ grid, Int64 gridSize, Func func);
+
     };
 }

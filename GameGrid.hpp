@@ -12,6 +12,7 @@ namespace GameLauncher {
     /// </summary>
     public ref class GameGrid
     {
+
     public:
         static const Int64 DEFAULT_GRID_SIZE = 16;
         static const Int64 DEFAULT_TILE_SIZE = 34;
@@ -36,7 +37,7 @@ namespace GameLauncher {
         /// <summary>
         /// Деструктор
         /// </summary>
-        ~GameGrid() { };
+        ~GameGrid() {};
 
         /// <summary>
         /// Возвращает двумерный массив плиток
@@ -66,7 +67,7 @@ namespace GameLauncher {
         /// <summary>
         /// Заполняет пустые (прозрачные) плитки случайными цветами
         /// </summary>
-        Void FillEmptyTiles();
+        Void FillEmptyTile(Button^ btn);
 
         /// <summary>
         /// Устанавливает обработчик клика для всех плиток
@@ -76,7 +77,9 @@ namespace GameLauncher {
         /// <summary>
         /// Сбрасывает выделение всех плиток
         /// </summary>
-        Void ResetAllSelection();
+        Void ResetTileSelection(Button^ btn);
+
+        Void ForEachTile(Action<Button^>^ action);
 
     private:
         /// <summary>
@@ -85,6 +88,6 @@ namespace GameLauncher {
         /// <param name="i">Строка в сетке</param>
         /// <param name="j">Столбец в сетке</param>
         Void CreateTile(Int64 i, Int64 j);
-    };
 
+    };
 }

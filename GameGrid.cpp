@@ -65,17 +65,11 @@ namespace GameLauncher {
     /// <summary>
     /// Заполняет пустые (прозрачные) плитки случайными цветами
     /// </summary>
-    Void GameGrid::FillEmptyTiles()
+    Void GameGrid::FillEmptyTile(Button^ btn)
     {
-        for (Int64 i = 0; i < gridSize; i++)
+        if (btn->BackColor == Color::Transparent)
         {
-            for (Int64 j = 0; j < gridSize; j++)
-            {
-                if (grid[i, j]->BackColor == Color::Transparent)
-                {
-                    grid[i, j]->BackColor = GetRandomColor();
-                }
-            }
+            btn->BackColor = GetRandomColor();
         }
     }
 
@@ -106,33 +100,31 @@ namespace GameLauncher {
     /// </summary>
     Void GameGrid::SetTileClickHandler(EventHandler^ handler)
     {
-        for (Int64 i = 0; i < gridSize; i++)
+        for each (Button ^ tile in grid)
         {
-            for (Int64 j = 0; j < gridSize; j++)
-            {
-                if (grid[i, j] != nullptr)
-                {
-                    grid[i, j]->Click += handler;
-                }
-            }
+            if (tile == nullptr) continue;
+            tile->Click += handler;
         }
     }
 
     /// <summary>
     /// Сбрасывает выделение всех плиток
     /// </summary>
-    Void GameGrid::ResetAllSelection()
+    Void GameGrid::ResetTileSelection(Button^ btn)
     {
-        for (Int64 i = 0; i < gridSize; i++)
+        if (btn != nullptr)
         {
-            for (Int64 j = 0; j < gridSize; j++)
-            {
-                if (grid[i, j] != nullptr)
-                {
-                    grid[i, j]->FlatAppearance->BorderSize = 1;
-                }
-            }
+            btn->FlatAppearance->BorderSize = 1;
         }
     }
+
+    Void GameGrid::ForEachTile(Action<Button^>^ action)
+    {
+        for each (Button ^ tile in grid)
+        {
+            action(tile);
+        }
+    }
+
 
 }
