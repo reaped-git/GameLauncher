@@ -1,0 +1,79 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="546" d:DesignHeight="580"
+        x:Class="Match3GameCS.MainWindow"
+        Title="Match3"
+        Width="546" Height="580"
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome">
+        
+    <Window.Styles>
+        <Style Selector="Window">
+            <Setter Property="Background" Value="Black"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+        <!-- Top Toolbar -->
+        <Border Name="ToolBar" 
+                Height="32" 
+                Background="White" 
+                DockPanel.Dock="Top"
+                PointerPressed="ToolBar_PointerPressed"
+                PointerMoved="ToolBar_PointerMoved"
+                PointerReleased="ToolBar_PointerReleased">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Name="ScoreLabel" 
+                          Text="Score: 0" 
+                          FontFamily="Impact" 
+                          FontSize="20"
+                          Foreground="Black"
+                          VerticalAlignment="Center"
+                          Margin="2,0,0,0"
+                          PointerPressed="ToolBar_PointerPressed"
+                          PointerMoved="ToolBar_PointerMoved"
+                          PointerReleased="ToolBar_PointerReleased"/>
+
+                <Button Name="MinimizeButton"
+                        Grid.Column="1"
+                        Width="36" Height="32"
+                        Background="White"
+                        BorderThickness="0"
+                        Content="_"
+                        FontFamily="Impact" 
+                        FontSize="18" FontWeight="Bold"
+                        Foreground="Black"
+                        Click="MinimizeButton_Click"
+                        PointerEntered="MinimizeButton_PointerEntered"
+                        PointerExited="MinimizeButton_PointerExited"/>
+
+                <Button Name="CloseButton"
+                        Grid.Column="2"
+                        Width="36" Height="32"
+                        Background="White"
+                        BorderThickness="0"
+                        Content="x"
+                        FontFamily="Arial" 
+                        FontSize="18"
+                        Foreground="Black"
+                        Click="CloseButton_Click"
+                        PointerEntered="CloseButton_PointerEntered"
+                        PointerExited="CloseButton_PointerExited"/>
+            </Grid>
+        </Border>
+
+        <!-- Game Area -->
+        <Canvas Name="GameArea" 
+               Background="Black"
+               Margin="0,1,0,0"/>
+    </DockPanel>
+</Window>
