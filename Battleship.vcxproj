@@ -18,6 +18,25 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Battleship\AIPlayer.cpp" />
+    <ClCompile Include="Battleship\GameBoard.cpp" />
+    <ClCompile Include="Battleship\GameManager.cpp" />
+    <ClCompile Include="Battleship\HumanPlayer.cpp" />
+    <ClCompile Include="Battleship\Main.cpp" />
+    <ClCompile Include="Battleship\Player.cpp" />
+    <ClCompile Include="Battleship\Ship.cpp" />
+    <ClCompile Include="Battleship\UserInterface.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Battleship\AIPlayer.hpp" />
+    <ClInclude Include="Battleship\GameBoard.hpp" />
+    <ClInclude Include="Battleship\GameManager.hpp" />
+    <ClInclude Include="Battleship\HumanPlayer.hpp" />
+    <ClInclude Include="Battleship\Player.hpp" />
+    <ClInclude Include="Battleship\Ship.hpp" />
+    <ClInclude Include="Battleship\UserInterface.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -122,25 +141,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="AIPlayer.hpp" />
-    <ClInclude Include="GameBoard.hpp" />
-    <ClInclude Include="GameManager.hpp" />
-    <ClInclude Include="HumanPlayer.hpp" />
-    <ClInclude Include="Player.hpp" />
-    <ClInclude Include="Ship.hpp" />
-    <ClInclude Include="UserInterface.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="AIPlayer.cpp" />
-    <ClCompile Include="GameBoard.cpp" />
-    <ClCompile Include="GameManager.cpp" />
-    <ClCompile Include="HumanPlayer.cpp" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="Ship.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="UserInterface.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
