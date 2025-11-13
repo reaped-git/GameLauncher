@@ -122,21 +122,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application.hpp" />
-    <ClInclude Include="GameGrid.hpp" />
-    <ClInclude Include="GameLogic.hpp" />
-    <ClInclude Include="InputHandler.hpp" />
-    <ClInclude Include="Match3Game.hpp" />
-    <ClInclude Include="ScoreManager.hpp" />
+    <ClCompile Include="Match3\Application.cpp" />
+    <ClCompile Include="Match3\GameGrid.cpp" />
+    <ClCompile Include="Match3\GameLogic.cpp" />
+    <ClCompile Include="Match3\InputHandler.cpp" />
+    <ClCompile Include="Match3\Main.cpp" />
+    <ClCompile Include="Match3\Match3Game.cpp" />
+    <ClCompile Include="Match3\ScoreManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application.cpp" />
-    <ClCompile Include="GameGrid.cpp" />
-    <ClCompile Include="GameLogic.cpp" />
-    <ClCompile Include="InputHandler.cpp" />
-    <ClCompile Include="Match3Game.cpp" />
-    <ClCompile Include="ScoreManager.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClInclude Include="Match3\Application.hpp" />
+    <ClInclude Include="Match3\GameGrid.hpp" />
+    <ClInclude Include="Match3\GameLogic.hpp" />
+    <ClInclude Include="Match3\InputHandler.hpp" />
+    <ClInclude Include="Match3\Match3Game.hpp" />
+    <ClInclude Include="Match3\ScoreManager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
