@@ -89,16 +89,23 @@ namespace Match3GameCS
             selectedTile2 = null;
         }
 
-        // Методы доступа к выбранным плиткам
+        // Публичные свойства
+        /// <summary>
+        /// Первая выбранная плитка
+        /// </summary>
+        public Button SelectedTile1
+        {
+            get => selectedTile1;
+            private set => selectedTile1 = value;
+        }
 
         /// <summary>
-        /// Возвращает первую выбранную плитку
+        /// Вторая выбранная плитка
         /// </summary>
-        public Button GetFirstSelectedTile() => selectedTile1;
-
-        /// <summary>
-        /// Возвращает вторую выбранную плитку
-        /// </summary>
-        public Button GetSecondSelectedTile() => selectedTile2;
+        public Button SelectedTile2
+        {
+            get => selectedTile2;
+            private set => selectedTile2 = value;
+        }
     }
 }

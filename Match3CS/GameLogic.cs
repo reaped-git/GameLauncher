@@ -1,6 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Match3GameCS
 {
@@ -39,22 +41,25 @@ namespace Match3GameCS
         /// <param name="gridSize">Размер сетки</param>
         /// <param name="matchedTiles">Выходной параметр - матрица совпавших плиток</param>
         /// <returns>true если найдены совпадения, иначе false</returns>
-        public bool CheckMatches(Button[,] grid, int gridSize, out bool[,] matchedTiles)
+        public bool CheckMatches(IEnumerable<IEnumerable<Button>> grid, out bool[,] matchedTiles)
         {
+            var gridArray = grid.To2DArray();
+            int gridSize = gridArray.GetLength(0);
+
             // Инициализируем матрицу для отметки совпавших плиток
             matchedTiles = new bool[gridSize, gridSize];
             bool found = false;
 
             // Проверяем совпадения в обоих направлениях
-            CheckHorizontalMatches(grid, gridSize, matchedTiles);
-            CheckVerticalMatches(grid, gridSize, matchedTiles);
+            CheckHorizontalMatches(gridArray, gridSize, matchedTiles);
+            CheckVerticalMatches(gridArray, gridSize, matchedTiles);
             found = HasMatches(gridSize, matchedTiles);
 
             // Если найдены совпадения - обрабатываем их
             if (found)
             {
-                RemoveMatchedTiles(grid, gridSize, matchedTiles);
-                DropTiles(grid, gridSize);
+                RemoveMatchedTiles(gridArray, gridSize, matchedTiles);
+                DropTiles(gridArray, gridSize);
             }
 
             return found;
@@ -117,11 +122,12 @@ namespace Match3GameCS
         /// </summary>
         private bool HasMatches(int gridSize, bool[,] matched)
         {
-            // Простой перебор всей матрицы
-            for (int i = 0; i < gridSize; i++)
-                for (int j = 0; j < gridSize; j++)
-                    if (matched[i, j])
-                        return true;
+            // Используем foreach для перебора всех элементов матрицы
+            foreach (bool isMatched in matched)
+            {
+                if (isMatched)
+                    return true;
+            }
             return false;
         }
 
@@ -175,7 +181,7 @@ namespace Match3GameCS
         /// Обрабатывает цепную реакцию совпадений до их полного отсутствия
         /// </summary>
         /// <returns>Общее количество удаленных плиток за всю цепную реакцию</returns>
-        public int ProcessMatches(Button[,] grid, int gridSize, GameGrid gameGrid)
+        public int ProcessMatches(IEnumerable<IEnumerable<Button>> grid, GameGrid gameGrid)
         {
             currentState = GameState.Processing; // Блокируем ввод во время обработки
             int totalRemoved = 0;
@@ -188,12 +194,12 @@ namespace Match3GameCS
                 gameGrid.ForEachTile(btn => gameGrid.FillEmptyTile(btn));
 
                 // Проверяем совпадения
-                changed = CheckMatches(grid, gridSize, out bool[,] matchedTiles);
+                changed = CheckMatches(grid, out bool[,] matchedTiles);
 
                 if (changed)
                 {
                     // Подсчитываем удаленные на этом шаге плитки
-                    int stepRemoved = CountRemovedTiles(matchedTiles, gridSize);
+                    int stepRemoved = CountRemovedTiles(matchedTiles);
                     totalRemoved += stepRemoved;
                 }
             } while (changed);  // Продолжаем пока есть изменения
@@ -225,7 +231,8 @@ namespace Match3GameCS
         /// Обрабатывает попытку обмена двух плиток
         /// </summary>
         /// <returns>Количество удаленных плиток в результате обмена</returns>
-        public int HandleTileSwap(Button tile1, Button tile2, Button[,] grid, int gridSize, GameGrid gameGrid)
+        public int HandleTileSwap(Button tile1, Button tile2, 
+            IEnumerable<IEnumerable<Button>> grid, GameGrid gameGrid)
         {
             // Проверяем, что плитки соседние
             if (AreAdjacent(tile1, tile2))
@@ -234,11 +241,11 @@ namespace Match3GameCS
                 gameGrid.SwapTiles(tile1, tile2);
 
                 // Проверяем, привел ли обмен к совпадениям
-                if (CheckMatches(grid, gridSize, out bool[,] matchedTiles))
+                if (CheckMatches(grid, out bool[,] matchedTiles))
                 {
                     // Если есть совпадения - обрабатываем цепную реакцию
-                    int removedCount = CountRemovedTiles(matchedTiles, gridSize);
-                    removedCount += ProcessMatches(grid, gridSize, gameGrid);
+                    int removedCount = CountRemovedTiles(matchedTiles);
+                    removedCount += ProcessMatches(grid, gameGrid);
                     return removedCount;
                 }
                 else
@@ -254,14 +261,9 @@ namespace Match3GameCS
         /// <summary>
         /// Подсчитывает количество удаленных плиток в матрице совпадений
         /// </summary>
-        private int CountRemovedTiles(bool[,] matched, int gridSize)
+        private int CountRemovedTiles(bool[,] matched)
         {
-            int count = 0;
-            for (int i = 0; i < gridSize; i++)
-                for (int j = 0; j < gridSize; j++)
-                    if (matched[i, j])
-                        count++;
-            return count;
+            return matched.Cast<bool>().Count(isMatched => isMatched);
         }
 
         /// <summary>
@@ -288,9 +290,23 @@ namespace Match3GameCS
         }
 
         /// <summary>
-        /// Текущее состояние игры (только для чтения)
+        /// Текущее состояние игры
         /// </summary>
-        public GameState CurrentState => currentState;
+        public GameState CurrentState
+        {
+            get => currentState;
+            set => currentState = value;
+        }
+
+        // Публичные свойства с геттерами и сеттерами
+        /// <summary>
+        /// Флаг начальной инициализации игры
+        /// </summary>
+        public bool Initializing
+        {
+            get => initializing;
+            set => initializing = value;
+        }
     }
 
     /// <summary>

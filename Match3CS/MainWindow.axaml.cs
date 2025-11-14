@@ -50,7 +50,7 @@ namespace Match3GameCS
             SetupTileEventHandlers();
 
             // Запускаем начальную обработку совпадений (убираем начальные комбо)
-            gameLogic.ProcessMatches(gameGrid.GetGrid(), gameGrid.GetSize(), gameGrid);
+            gameLogic.ProcessMatches(gameGrid.Grid, gameGrid);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Match3GameCS
                 case TileClickResult.FirstSelected:
                     // Выделяем первую плитку
                     gameGrid.ForEachTile(btn => gameGrid.ResetTileSelection(btn));
-                    var firstTile = inputHandler.GetFirstSelectedTile();
+                    var firstTile = inputHandler.SelectedTile1;
                     if (firstTile != null)
                     {
                         firstTile.BorderThickness = new Thickness(2);    // Утолщенная рамка
@@ -85,14 +85,14 @@ namespace Match3GameCS
 
                 case TileClickResult.SecondSelected:
                     // Пытаемся обменять две выбранные плитки
-                    var tile1 = inputHandler.GetFirstSelectedTile();
-                    var tile2 = inputHandler.GetSecondSelectedTile();
+                    var tile1 = inputHandler.SelectedTile1;
+                    var tile2 = inputHandler.SelectedTile2;
 
                     if (tile1 != null && tile2 != null)
                     {
                         // Обрабатываем обмен плиток
                         int removedTiles = gameLogic.HandleTileSwap(
-                            tile1, tile2, gameGrid.GetGrid(), gameGrid.GetSize(), gameGrid);
+                            tile1, tile2, gameGrid.Grid, gameGrid);
 
                         // Если обмен успешен (удалены плитки) - начисляем очки
                         if (removedTiles > 0)

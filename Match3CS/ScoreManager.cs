@@ -64,10 +64,6 @@ namespace Match3GameCS
             return $"Score: {currentScore}";
         }
 
-        /// <summary>
-        /// Возвращает текущий счет
-        /// </summary>
-        public int GetCurrentScore() => currentScore;
 
         /// <summary>
         /// Рассчитывает бонусные очки на основе количества удаленных плиток
@@ -114,6 +110,15 @@ namespace Match3GameCS
 
             // Если плиток не удалено, возвращаем текущий счет без изменений
             return FormatScore(currentScore);
+        }
+
+        /// <summary>
+        /// Текущее количество очков
+        /// </summary>
+        public int CurrentScore
+        {
+            get => currentScore;
+            private set => currentScore = value;
         }
     }
 }

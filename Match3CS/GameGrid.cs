@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Match3GameCS
 {
@@ -181,13 +183,31 @@ namespace Match3GameCS
         // Свойства только для чтения
 
         /// <summary>
-        /// Возвращает двумерный массив плиток
+        /// Игровая сетка как IEnumerable (только для чтения)
         /// </summary>
-        public Button[,] GetGrid() => grid;
+        /// <summary>
+        /// Игровая сетка как IEnumerable (только для чтения)
+        /// </summary>
+        public IEnumerable<IEnumerable<Button>> Grid
+        {
+            get => grid.ToJaggedArray().Select(row => row.AsEnumerable());
+        }
 
         /// <summary>
-        /// Возвращает размер сетки
+        /// Цветовая палитра игры (только для чтения)
         /// </summary>
-        public int GetSize() => gridSize;
+        public IEnumerable<Color> ColorPalette
+        {
+            get => colorPalette;
+        }
+
+        /// <summary>
+        /// Размер игровой сетки
+        /// </summary>
+        public int GridSize
+        {
+            get => gridSize;
+            private set => gridSize = value;
+        }
     }
 }
