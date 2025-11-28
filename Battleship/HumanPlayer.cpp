@@ -2,10 +2,49 @@
 #include <random>
 #include <algorithm>
 
+
 HumanPlayer::HumanPlayer(std::string name, int boardSize)
-	: Player(name, boardSize)
+	: Player(name, boardSize)  // Явный вызов конструктора базового класса
 {
 	shipSizes = GameBoard::MakeShipSizes(GameBoard::DEFAULT_SHIP_CONFIG);
+}
+
+// Конструктор копирования с вызовом базового класса
+HumanPlayer::HumanPlayer(const HumanPlayer& other)
+	: Player(other)  // Явный вызов конструктора копирования базового класса
+	, shipSizes(other.shipSizes)
+{
+}
+
+// Перегрузка оператора присваивания
+HumanPlayer& HumanPlayer::operator=(const HumanPlayer& other)
+{
+	if (this != &other) {
+		Player::operator=(other);  // Вызов оператора присваивания базового класса
+		shipSizes = other.shipSizes;
+	}
+	return *this;
+}
+
+// Метод для клонирования
+HumanPlayer* HumanPlayer::Clone() const
+{
+	return new HumanPlayer(*this);
+}
+
+std::string HumanPlayer::GeneratePlacementMessage(int shipSize) const
+{
+	std::string message = "Разместите корабль размером " + std::to_string(shipSize);
+
+	// Поиск в конфигурации для дополнительной информации
+	for (const auto& config : GameBoard::DEFAULT_SHIP_CONFIG) {
+		if (config.first == shipSize) {
+			message += " (всего таких: " + std::to_string(config.second) + ")";
+			break;
+		}
+	}
+
+	return message;
 }
 
 void HumanPlayer::PlaceShips()
@@ -47,7 +86,10 @@ void HumanPlayer::ManualPlacement()
 		while (!placed)
 		{
 			DisplayBoardState();
-			std::cout << "Разместите корабль размером " << size << "\n";
+
+			// Используем новый метод работы со строками
+			std::string placementMsg = GeneratePlacementMessage(size);
+			std::cout << placementMsg << "\n";
 
 			int row, col, orientation;
 

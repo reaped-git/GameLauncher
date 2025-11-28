@@ -1,25 +1,34 @@
-﻿#pragma once
+﻿// UserInterface.hpp
+#pragma once
 
 #include "Player.hpp"
 #include <string>
+#include <memory>
+#include <iostream>
+#include <sstream>
 
-// Предварительное объявление
 class GameManager;
 
 class UserInterface
 {
 public:
-	// конструкторы и деконструктор
-	UserInterface(GameManager* manager);
-	~UserInterface() = default;
+    UserInterface(GameManager* manager);
+    ~UserInterface() = default;
 
-	// публичные методы
-	void DisplayBoards(Player* player);
-	void DisplayMessage(const std::string& message);
-	void ShowGameOver(const std::string& winnerName);
-	void DisplayLegend();
+    // Конструктор копирования
+    UserInterface(const UserInterface& other);
+
+    // Перегрузка оператора присваивания
+    UserInterface& operator=(const UserInterface& other);
+
+    void DisplayBoards(Player* player);
+    void DisplayMessage(const std::string& message);
+    void ShowGameOver(const std::string& winnerName);
+    void DisplayLegend();
 
 private:
-	// приватные переменные
-	GameManager* m_gameManager;
+    GameManager* m_gameManager;
+
+    // метод для работы со строками
+    std::string FormatBoardTitle(const std::string& title) const;
 };

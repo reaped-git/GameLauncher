@@ -1,28 +1,40 @@
-﻿#pragma once
+﻿// HumanPlayer.hpp
+#pragma once
 
 #include "Player.hpp"
 #include "GameBoard.hpp"
 #include <iostream>
+#include <memory>
+#include <sstream>
 
 class HumanPlayer : public Player
 {
 public:
-	// конструкторы и деконструктор
-	HumanPlayer(std::string name, int boardSize);
-	~HumanPlayer() override = default;
+    HumanPlayer(std::string name, int boardSize);
+    ~HumanPlayer() override = default;
 
-	// публичные методы
-	void PlaceShips() override;
-	MoveType MakeMove() override;
+    // Конструктор копирования с вызовом базового класса
+    HumanPlayer(const HumanPlayer& other);
 
-	static const int MAX_ATTEMPTS = 100;
-	GameBoard::ShipSizesType shipSizes;
+    // Перегрузка оператора присваивания
+    HumanPlayer& operator=(const HumanPlayer& other);
+
+    // Виртуальный метод для клонирования (теперь переопределяет базовый)
+    HumanPlayer* Clone() const override;
+
+    void PlaceShips() override;
+    MoveType MakeMove() override;
+
+    static const int MAX_ATTEMPTS = 100;
+    GameBoard::ShipSizesType shipSizes;
 
 private:
-	// приватные методы
-	void DisplayBoardState();
-	void ManualPlacement();
-	void AutomaticPlacement();
-	bool TryPlaceShip(int size, int row, int col, bool horizontal);
-	int GetValidatedInput(const std::string& prompt, int minValue, int maxValue);
+    void DisplayBoardState();
+    void ManualPlacement();
+    void AutomaticPlacement();
+    bool TryPlaceShip(int size, int row, int col, bool horizontal);
+    int GetValidatedInput(const std::string& prompt, int minValue, int maxValue);
+
+    // Новый метод для работы со строками
+    std::string GeneratePlacementMessage(int shipSize) const;
 };

@@ -1,10 +1,30 @@
 ﻿#include "UserInterface.hpp"
 #include "GameManager.hpp"
-#include <iostream>
 
 UserInterface::UserInterface(GameManager* manager)
 	: m_gameManager(manager)
 {
+}
+
+// Конструктор копирования
+UserInterface::UserInterface(const UserInterface& other)
+	: m_gameManager(other.m_gameManager)
+{
+}
+
+// Перегрузка оператора присваивания
+UserInterface& UserInterface::operator=(const UserInterface& other)
+{
+	if (this != &other) {
+		m_gameManager = other.m_gameManager;
+	}
+	return *this;
+}
+
+std::string UserInterface::FormatBoardTitle(const std::string& title) const
+{
+	std::string formatted = "=== " + title + " ===";
+	return formatted;
 }
 
 void UserInterface::DisplayBoards(Player* player)
@@ -12,10 +32,14 @@ void UserInterface::DisplayBoards(Player* player)
 	std::cout << "========================================\n";
 	std::cout << "         ТЕКУЩЕЕ СОСТОЯНИЕ\n";
 	std::cout << "========================================\n";
-	std::cout << "Игрок: " << player->GetName() << "\n\n";
 
-	// Поле игрока - показываем корабли (forOwner = true)
-	std::cout << "=== ВАШЕ ПОЛЕ ===\n";
+	// Использование перегруженного оператора вывода для Player
+	if (player) {
+		std::cout << *player << "\n\n";
+	}
+
+	// Использование нового метода для форматирования строк
+	std::cout << FormatBoardTitle("ВАШЕ ПОЛЕ") << "\n";
 	auto myState = player->GetMyBoard().GetVisibleState(true);
 
 	// Вывод номеров столбцов

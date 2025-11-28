@@ -3,7 +3,7 @@
 #include <ctime>
 
 AIPlayer::AIPlayer(std::string name, int boardSize)
-	: Player(name, boardSize)
+	: Player(name, boardSize)  
 	, m_lastHit({ -1, -1 })
 {
 	// Генерируем все возможные ходы
@@ -21,6 +21,35 @@ AIPlayer::AIPlayer(std::string name, int boardSize)
 	std::shuffle(m_allPossibleMoves.begin(), m_allPossibleMoves.end(), gen);
 
 	shipSizes = GameBoard::MakeShipSizes(GameBoard::DEFAULT_SHIP_CONFIG);
+}
+
+// Конструктор копирования с вызовом базового класса
+AIPlayer::AIPlayer(const AIPlayer& other)
+	: Player(other)  // Вызов конструктора копирования базового класса
+	, m_lastHit(other.m_lastHit)
+	, m_potentialTargets(other.m_potentialTargets)
+	, m_allPossibleMoves(other.m_allPossibleMoves)
+	, shipSizes(other.shipSizes)
+{
+}
+
+// Перегрузка оператора присваивания
+AIPlayer& AIPlayer::operator=(const AIPlayer& other)
+{
+	if (this != &other) {
+		Player::operator=(other);  // Вызов оператора присваивания базового класса
+		m_lastHit = other.m_lastHit;
+		m_potentialTargets = other.m_potentialTargets;
+		m_allPossibleMoves = other.m_allPossibleMoves;
+		shipSizes = other.shipSizes;
+	}
+	return *this;
+}
+
+// Метод для клонирования
+AIPlayer* AIPlayer::Clone() const
+{
+	return new AIPlayer(*this);
 }
 
 void AIPlayer::PlaceShips()

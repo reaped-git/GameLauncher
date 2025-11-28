@@ -1,9 +1,47 @@
 ﻿#include "GameBoard.hpp"
-#include <algorithm>
 
 GameBoard::GameBoard(int size)
 	: m_size(size)
 {
+}
+
+// Конструктор копирования
+GameBoard::GameBoard(const GameBoard& other)
+	: m_size(other.m_size)
+	, m_ships(other.m_ships)
+	, m_shots(other.m_shots)
+	, m_misses(other.m_misses)
+{
+}
+
+// Перегрузка оператора присваивания
+GameBoard& GameBoard::operator=(const GameBoard& other)
+{
+	if (this != &other) {
+		m_size = other.m_size;
+		m_ships = other.m_ships;
+		m_shots = other.m_shots;
+		m_misses = other.m_misses;
+	}
+	return *this;
+}
+
+// Перегрузка оператора сравнения
+bool GameBoard::operator==(const GameBoard& other) const
+{
+	return m_size == other.m_size &&
+		m_ships.size() == other.m_ships.size() &&
+		m_shots.size() == other.m_shots.size();
+}
+
+// Дружественная функция для работы со строками
+std::string CombineBoardInfo(const GameBoard& board1, const GameBoard& board2)
+{
+	std::string result = "Board1: " + std::to_string(board1.m_size) + "x" + std::to_string(board1.m_size) +
+		" | Ships: " + std::to_string(board1.m_ships.size()) +
+		" | Board2: " + std::to_string(board2.m_size) + "x" + std::to_string(board2.m_size) +
+		" | Ships: " + std::to_string(board2.m_ships.size());
+	return result;
 }
 
 bool GameBoard::PlaceShip(const Ship& ship)
