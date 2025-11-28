@@ -15,43 +15,70 @@ namespace Match3GameCS
     public class GameGrid
     {
         // Константы для настроек по умолчанию
-        public const int DEFAULT_GRID_SIZE = 16;  // Размер сетки 16x16
-        public const int DEFAULT_TILE_SIZE = 34;  // Размер плитки 34x34 пикселей
+        public const int DEFAULT_GRID_SIZE = 16;
+        public const int DEFAULT_TILE_SIZE = 34;
+
+        // Статическое поле - количество созданных сеток
+        private static int gridsCreated = 0;
 
         // Поля класса
-        private Button[,] grid;           // Двумерный массив кнопок-плиток
-        private int gridSize;             // Текущий размер сетки
-        private int tileSize;             // Размер одной плитки в пикселях
-        private Random random;            // Генератор случайных чисел для цветов
-        private Canvas backgroundPanel;   // Родительский Canvas для размещения плиток
-        private readonly Color[] colorPalette; // Цветовая палитра игры
+        private Button[,] grid;
+        private int gridSize;
+        private int tileSize;
+        private Random random;
+        private Canvas backgroundPanel;
+        private readonly Color[] colorPalette;
+
+        /// <summary>
+        /// Статическое свойство для отслеживания созданных сеток
+        /// </summary>
+        public static int GridsCreated => gridsCreated;
+
+        /// <summary>
+        /// Статический метод для получения информации о сетках
+        /// </summary>
+        public static string GetGridsInfo()
+        {
+            return $"Total grids created: {gridsCreated}";
+        }
 
         /// <summary>
         /// Конструктор игровой сетки
         /// </summary>
-        /// <param name="background">Canvas для размещения плиток</param>
-        /// <param name="size">Размер сетки (size x size)</param>
-        /// <param name="tileSize">Размер одной плитки в пикселях</param>
         public GameGrid(Canvas background, int size, int tileSize)
         {
-            backgroundPanel = background;
-            gridSize = size;
-            this.tileSize = tileSize;
-            random = new Random();
-            grid = new Button[gridSize, gridSize];
-
-            // Инициализация цветовой палитры (те же цвета, что в оригинальной игре)
-            colorPalette = new Color[]
+            try
             {
-                Color.FromArgb(255, 158, 25, 66),    // Темно-красный
-                Color.FromArgb(255, 244, 109, 67),   // Оранжевый
-                Color.FromArgb(255, 254, 224, 139),  // Светло-желтый
-                Color.FromArgb(255, 147, 219, 135),  // Светло-зеленый
-                Color.FromArgb(255, 50, 136, 189),   // Синий
-                Color.FromArgb(255, 94, 79, 162)     // Фиолетовый
-            };
+                if (background == null)
+                    throw new ArgumentNullException(nameof(background));
+                if (size <= 0)
+                    throw new GameInitializationException("Grid size must be positive");
+                if (tileSize <= 0)
+                    throw new GameInitializationException("Tile size must be positive");
 
-            InitializeGrid();
+                backgroundPanel = background;
+                GridSize = size;
+                TileSize = tileSize;
+                random = new Random();
+                grid = new Button[GridSize, GridSize];
+
+                colorPalette = new Color[]
+                {
+                    Color.FromArgb(255, 158, 25, 66),
+                    Color.FromArgb(255, 244, 109, 67),
+                    Color.FromArgb(255, 254, 224, 139),
+                    Color.FromArgb(255, 147, 219, 135),
+                    Color.FromArgb(255, 50, 136, 189),
+                    Color.FromArgb(255, 94, 79, 162)
+                };
+
+                gridsCreated++; // Увеличиваем счетчик созданных сеток
+                InitializeGrid();
+            }
+            catch (Exception ex)
+            {
+                throw new GameInitializationException("Failed to create game grid", ex);
+            }
         }
 
         /// <summary>
@@ -59,138 +86,194 @@ namespace Match3GameCS
         /// </summary>
         public void InitializeGrid()
         {
-            // Двойной цикл для создания сетки плиток
-            for (int i = 0; i < gridSize; i++)      // Строки
+            try
             {
-                for (int j = 0; j < gridSize; j++) // Столбцы
+                for (int i = 0; i < GridSize; i++)
                 {
-                    CreateTile(i, j);
+                    for (int j = 0; j < GridSize; j++)
+                    {
+                        CreateTile(i, j);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Failed to initialize grid", ex);
             }
         }
 
         /// <summary>
         /// Создает отдельную плитку в указанной позиции сетки
         /// </summary>
-        /// <param name="i">Строка в сетке (0-based)</param>
-        /// <param name="j">Столбец в сетке (0-based)</param>
         private void CreateTile(int i, int j)
         {
-            // Создаем новую кнопку-плитку
-            var btn = new Button
+            try
             {
-                Width = tileSize,
-                Height = tileSize,
-                Margin = new Thickness(0),           // Без внешних отступов
-                Tag = new TilePosition(i, j),        // Сохраняем координаты
-                Background = new SolidColorBrush(GetRandomColor()), // Случайный цвет
-                Content = "",                        // Без текста
-                BorderBrush = Brushes.Black,         // Черная рамка
-                BorderThickness = new Thickness(1)   // Толщина рамки
-            };
+                var btn = new Button
+                {
+                    Width = TileSize,
+                    Height = TileSize,
+                    Margin = new Thickness(0),
+                    Tag = new TilePosition(i, j),
+                    Background = new SolidColorBrush(GetRandomColor()),
+                    Content = "",
+                    BorderBrush = Brushes.Black,
+                    BorderThickness = new Thickness(1)
+                };
 
-            // Позиционируем плитку на Canvas
-            Canvas.SetLeft(btn, j * tileSize);  // X координата = столбец * размер плитки
-            Canvas.SetTop(btn, i * tileSize);   // Y координата = строка * размер плитки
+                Canvas.SetLeft(btn, j * TileSize);
+                Canvas.SetTop(btn, i * TileSize);
 
-            // Добавляем плитку на родительский Canvas
-            backgroundPanel.Children.Add(btn);
-
-            // Сохраняем ссылку в массиве
-            grid[i, j] = btn;
+                backgroundPanel.Children.Add(btn);
+                grid[i, j] = btn;
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException($"Failed to create tile at position ({i}, {j})", ex);
+            }
         }
 
         /// <summary>
         /// Генерирует случайный цвет для плитки из предопределенной палитры
         /// </summary>
-        /// <returns>Случайный цвет из палитры</returns>
         public Color GetRandomColor()
         {
-            return colorPalette[random.Next(colorPalette.Length)];
+            try
+            {
+                return colorPalette[random.Next(colorPalette.Length)];
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Failed to get random color", ex);
+            }
         }
 
         /// <summary>
         /// Меняет цвета двух плиток местами
         /// </summary>
-        /// <param name="a">Первая плитка</param>
-        /// <param name="b">Вторая плитка</param>
         public void SwapTiles(Button a, Button b)
         {
-            // Классический обмен значений через временную переменную
-            var temp = a.Background;
-            a.Background = b.Background;
-            b.Background = temp;
+            try
+            {
+                if (a == null || b == null)
+                    throw new ArgumentNullException(a == null ? nameof(a) : nameof(b));
+
+                var temp = a.Background;
+                a.Background = b.Background;
+                b.Background = temp;
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Failed to swap tiles", ex);
+            }
         }
 
         /// <summary>
         /// Заполняет пустые (прозрачные) плитки случайными цветами
-        /// Используется после удаления совпадений для заполнения пустот
         /// </summary>
-        /// <param name="btn">Плитка для проверки и заполнения</param>
         public void FillEmptyTile(Button btn)
         {
-            // Проверяем, является ли плитка пустой (прозрачной)
-            if (btn.Background == Brushes.Transparent)
+            try
             {
-                btn.Background = new SolidColorBrush(GetRandomColor());
+                if (btn == null)
+                    throw new ArgumentNullException(nameof(btn));
+
+                if (btn.Background == Brushes.Transparent)
+                {
+                    btn.Background = new SolidColorBrush(GetRandomColor());
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Failed to fill empty tile", ex);
             }
         }
 
         /// <summary>
         /// Устанавливает обработчик клика для всех плиток сетки
         /// </summary>
-        /// <param name="handler">Обработчик события клика</param>
         public void SetTileClickHandler(EventHandler<RoutedEventArgs> handler)
         {
-            // Проходим по всем плиткам в сетке
-            foreach (var tile in grid)
+            try
             {
-                if (tile != null)
+                if (handler == null)
+                    throw new ArgumentNullException(nameof(handler));
+
+                foreach (var tile in grid)
                 {
-                    tile.Click += handler; // Подписываемся на событие клика
+                    if (tile != null)
+                    {
+                        tile.Click += handler;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Failed to set tile click handler", ex);
             }
         }
 
         /// <summary>
         /// Сбрасывает выделение плитки (восстанавливает стандартную рамку)
         /// </summary>
-        /// <param name="btn">Плитка для сброса выделения</param>
         public void ResetTileSelection(Button btn)
         {
-            if (btn != null)
+            try
             {
-                btn.BorderThickness = new Thickness(1);  // Стандартная толщина рамки
-                btn.BorderBrush = Brushes.Black;         // Черный цвет рамки
+                if (btn != null)
+                {
+                    btn.BorderThickness = new Thickness(1);
+                    btn.BorderBrush = Brushes.Black;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Failed to reset tile selection", ex);
             }
         }
 
         /// <summary>
         /// Выполняет действие для каждой плитки в сетке
         /// </summary>
-        /// <param name="action">Действие для выполнения над каждой плиткой</param>
         public void ForEachTile(Action<Button> action)
         {
-            foreach (var tile in grid)
+            try
             {
-                if (tile != null)
+                if (action == null)
+                    throw new ArgumentNullException(nameof(action));
+
+                foreach (var tile in grid)
                 {
-                    action(tile); // Выполняем переданное действие
+                    if (tile != null)
+                    {
+                        action(tile);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Failed to execute action for tiles", ex);
             }
         }
 
-        // Свойства только для чтения
+        // Свойства с валидацией
 
-        /// <summary>
-        /// Игровая сетка как IEnumerable (только для чтения)
-        /// </summary>
         /// <summary>
         /// Игровая сетка как IEnumerable (только для чтения)
         /// </summary>
         public IEnumerable<IEnumerable<Button>> Grid
         {
-            get => grid.ToJaggedArray().Select(row => row.AsEnumerable());
+            get
+            {
+                try
+                {
+                    return grid.ToJaggedArray().Select(row => row.AsEnumerable());
+                }
+                catch (Exception ex)
+                {
+                    throw new TileOperationException("Failed to convert grid to enumerable", ex);
+                }
+            }
         }
 
         /// <summary>
@@ -207,7 +290,31 @@ namespace Match3GameCS
         public int GridSize
         {
             get => gridSize;
-            private set => gridSize = value;
+            private set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Grid size must be positive");
+                gridSize = value;
+            }
         }
+
+        /// <summary>
+        /// Размер плитки
+        /// </summary>
+        public int TileSize
+        {
+            get => tileSize;
+            private set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Tile size must be positive");
+                tileSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Общее количество плиток в сетке
+        /// </summary>
+        public int TotalTiles => GridSize * GridSize;
     }
 }

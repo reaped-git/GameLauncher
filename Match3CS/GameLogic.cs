@@ -14,6 +14,7 @@ namespace Match3GameCS
         Initializing = 0,    // Инициализация игрового поля
         Playing = 1,         // Игрок может делать ходы
         Processing = 2,      // Обработка совпадений (блокировка ввода)
+        GameOver = 3         // Игра завершена
     }
 
     /// <summary>
@@ -22,8 +23,26 @@ namespace Match3GameCS
     /// </summary>
     public class GameLogic
     {
-        private bool initializing;       // Флаг начальной инициализации
-        private GameState currentState;  // Текущее состояние игры
+        private bool initializing;
+        private GameState currentState;
+        private int maxMoves;
+        private int movesLeft;
+
+        // Статическое поле - количество созданных экземпляров игры
+        private static int gamesCreated = 0;
+
+        /// <summary>
+        /// Статическое свойство для отслеживания созданных игр
+        /// </summary>
+        public static int GamesCreated => gamesCreated;
+
+        /// <summary>
+        /// Статический метод для получения информации о играх
+        /// </summary>
+        public static string GetGamesInfo()
+        {
+            return $"Total games created: {gamesCreated}";
+        }
 
         /// <summary>
         /// Конструктор игровой логики
@@ -32,37 +51,62 @@ namespace Match3GameCS
         {
             initializing = true;
             currentState = GameState.Initializing;
+            maxMoves = 50;
+            movesLeft = maxMoves;
+
+            gamesCreated++; // Увеличиваем счетчик созданных игр
+        }
+
+        /// <summary>
+        /// Конструктор с настройкой максимального количества ходов
+        /// </summary>
+        public GameLogic(int maxMoves) : this()
+        {
+            if (maxMoves <= 0)
+                throw new GameInitializationException("Max moves must be positive");
+
+            this.maxMoves = maxMoves;
+            this.movesLeft = maxMoves;
         }
 
         /// <summary>
         /// Проверяет и удаляет совпадения (3+ в ряд по горизонтали или вертикали)
         /// </summary>
         /// <param name="grid">Игровая сетка с плитками</param>
-        /// <param name="gridSize">Размер сетки</param>
         /// <param name="matchedTiles">Выходной параметр - матрица совпавших плиток</param>
         /// <returns>true если найдены совпадения, иначе false</returns>
         public bool CheckMatches(IEnumerable<IEnumerable<Button>> grid, out bool[,] matchedTiles)
         {
-            var gridArray = grid.To2DArray();
-            int gridSize = gridArray.GetLength(0);
-
-            // Инициализируем матрицу для отметки совпавших плиток
-            matchedTiles = new bool[gridSize, gridSize];
-            bool found = false;
-
-            // Проверяем совпадения в обоих направлениях
-            CheckHorizontalMatches(gridArray, gridSize, matchedTiles);
-            CheckVerticalMatches(gridArray, gridSize, matchedTiles);
-            found = HasMatches(gridSize, matchedTiles);
-
-            // Если найдены совпадения - обрабатываем их
-            if (found)
+            try
             {
-                RemoveMatchedTiles(gridArray, gridSize, matchedTiles);
-                DropTiles(gridArray, gridSize);
-            }
+                if (grid == null)
+                    throw new ArgumentNullException(nameof(grid));
 
-            return found;
+                var gridArray = grid.To2DArray();
+                int gridSize = gridArray.GetLength(0);
+
+                // Инициализируем матрицу для отметки совпавших плиток
+                matchedTiles = new bool[gridSize, gridSize];
+                bool found = false;
+
+                // Проверяем совпадения в обоих направлениях
+                CheckHorizontalMatches(gridArray, gridSize, matchedTiles);
+                CheckVerticalMatches(gridArray, gridSize, matchedTiles);
+                found = HasMatches(gridSize, matchedTiles);
+
+                // Если найдены совпадения - обрабатываем их
+                if (found)
+                {
+                    RemoveMatchedTiles(gridArray, gridSize, matchedTiles);
+                    DropTiles(gridArray, gridSize);
+                }
+
+                return found;
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Error checking matches", ex);
+            }
         }
 
         /// <summary>
@@ -70,24 +114,28 @@ namespace Match3GameCS
         /// </summary>
         private void CheckHorizontalMatches(Button[,] grid, int gridSize, bool[,] matched)
         {
-            for (int i = 0; i < gridSize; i++)          // Проходим по всем строкам
+            try
             {
-                for (int j = 0; j < gridSize - 2; j++) // Проходим по столбцам (оставляем место для 3 плиток)
+                for (int i = 0; i < gridSize; i++)
                 {
-                    // Получаем цвета трех последовательных плиток
-                    var color1 = GetButtonColor(grid[i, j]);
-                    var color2 = GetButtonColor(grid[i, j + 1]);
-                    var color3 = GetButtonColor(grid[i, j + 2]);
-
-                    // Проверяем совпадение трех плиток подряд
-                    if (color1.HasValue && color1 == color2 && color1 == color3)
+                    for (int j = 0; j < gridSize - 2; j++)
                     {
-                        // Отмечаем все три плитки как совпавшие
-                        matched[i, j] = true;
-                        matched[i, j + 1] = true;
-                        matched[i, j + 2] = true;
+                        var color1 = GetButtonColor(grid[i, j]);
+                        var color2 = GetButtonColor(grid[i, j + 1]);
+                        var color3 = GetButtonColor(grid[i, j + 2]);
+
+                        if (color1.HasValue && color1 == color2 && color1 == color3)
+                        {
+                            matched[i, j] = true;
+                            matched[i, j + 1] = true;
+                            matched[i, j + 2] = true;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Error in horizontal match checking", ex);
             }
         }
 
@@ -96,24 +144,28 @@ namespace Match3GameCS
         /// </summary>
         private void CheckVerticalMatches(Button[,] grid, int gridSize, bool[,] matched)
         {
-            for (int i = 0; i < gridSize - 2; i++)      // Проходим по строкам (оставляем место для 3 плиток)
+            try
             {
-                for (int j = 0; j < gridSize; j++)     // Проходим по всем столбцам
+                for (int i = 0; i < gridSize - 2; i++)
                 {
-                    // Получаем цвета трех последовательных плиток
-                    var color1 = GetButtonColor(grid[i, j]);
-                    var color2 = GetButtonColor(grid[i + 1, j]);
-                    var color3 = GetButtonColor(grid[i + 2, j]);
-
-                    // Проверяем совпадение трех плиток в столбец
-                    if (color1.HasValue && color1 == color2 && color1 == color3)
+                    for (int j = 0; j < gridSize; j++)
                     {
-                        // Отмечаем все три плитки как совпавшие
-                        matched[i, j] = true;
-                        matched[i + 1, j] = true;
-                        matched[i + 2, j] = true;
+                        var color1 = GetButtonColor(grid[i, j]);
+                        var color2 = GetButtonColor(grid[i + 1, j]);
+                        var color3 = GetButtonColor(grid[i + 2, j]);
+
+                        if (color1.HasValue && color1 == color2 && color1 == color3)
+                        {
+                            matched[i, j] = true;
+                            matched[i + 1, j] = true;
+                            matched[i + 2, j] = true;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Error in vertical match checking", ex);
             }
         }
 
@@ -122,7 +174,6 @@ namespace Match3GameCS
         /// </summary>
         private bool HasMatches(int gridSize, bool[,] matched)
         {
-            // Используем foreach для перебора всех элементов матрицы
             foreach (bool isMatched in matched)
             {
                 if (isMatched)
@@ -142,7 +193,7 @@ namespace Match3GameCS
                 {
                     if (matched[i, j])
                     {
-                        SetButtonColor(grid[i, j], null); // Устанавливаем прозрачный цвет
+                        SetButtonColor(grid[i, j], null);
                     }
                 }
             }
@@ -154,26 +205,29 @@ namespace Match3GameCS
         /// </summary>
         private void DropTiles(Button[,] grid, int gridSize)
         {
-            // Обрабатываем каждый столбец отдельно
-            for (int j = 0; j < gridSize; j++)
+            try
             {
-                int emptyRow = gridSize - 1; // Начинаем с самой нижней строки
-
-                // Проходим столбец снизу вверх
-                for (int i = gridSize - 1; i >= 0; i--)
+                for (int j = 0; j < gridSize; j++)
                 {
-                    // Если плитка не пустая (не прозрачная)
-                    if (GetButtonColor(grid[i, j]).HasValue)
+                    int emptyRow = gridSize - 1;
+
+                    for (int i = gridSize - 1; i >= 0; i--)
                     {
-                        // Если плитка не на своем месте - перемещаем ее вниз
-                        if (i != emptyRow)
+                        if (GetButtonColor(grid[i, j]).HasValue)
                         {
-                            SetButtonColor(grid[emptyRow, j], GetButtonColor(grid[i, j]));
-                            SetButtonColor(grid[i, j], null); // Освобождаем старую позицию
+                            if (i != emptyRow)
+                            {
+                                SetButtonColor(grid[emptyRow, j], GetButtonColor(grid[i, j]));
+                                SetButtonColor(grid[i, j], null);
+                            }
+                            emptyRow--;
                         }
-                        emptyRow--; // Поднимаемся к следующей пустой позиции
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Error in tile dropping", ex);
             }
         }
 
@@ -183,31 +237,36 @@ namespace Match3GameCS
         /// <returns>Общее количество удаленных плиток за всю цепную реакцию</returns>
         public int ProcessMatches(IEnumerable<IEnumerable<Button>> grid, GameGrid gameGrid)
         {
-            currentState = GameState.Processing; // Блокируем ввод во время обработки
-            int totalRemoved = 0;
-            bool changed;
-
-            // Цикл продолжается пока находятся новые совпадения
-            do
+            try
             {
-                // Заполняем пустые плитки новыми цветами
-                gameGrid.ForEachTile(btn => gameGrid.FillEmptyTile(btn));
+                if (grid == null || gameGrid == null)
+                    throw new ArgumentNullException(grid == null ? nameof(grid) : nameof(gameGrid));
 
-                // Проверяем совпадения
-                changed = CheckMatches(grid, out bool[,] matchedTiles);
+                CurrentState = GameState.Processing;
+                int totalRemoved = 0;
+                bool changed;
 
-                if (changed)
+                do
                 {
-                    // Подсчитываем удаленные на этом шаге плитки
-                    int stepRemoved = CountRemovedTiles(matchedTiles);
-                    totalRemoved += stepRemoved;
-                }
-            } while (changed);  // Продолжаем пока есть изменения
+                    gameGrid.ForEachTile(btn => gameGrid.FillEmptyTile(btn));
+                    changed = CheckMatches(grid, out bool[,] matchedTiles);
 
-            currentState = GameState.Playing; // Разблокируем ввод
-            initializing = false;             // Снимаем флаг инициализации
+                    if (changed)
+                    {
+                        int stepRemoved = CountRemovedTiles(matchedTiles);
+                        totalRemoved += stepRemoved;
+                    }
+                } while (changed);
 
-            return totalRemoved;
+                CurrentState = GameState.Playing;
+                Initializing = false;
+
+                return totalRemoved;
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Error processing matches", ex);
+            }
         }
 
         /// <summary>
@@ -215,47 +274,73 @@ namespace Match3GameCS
         /// </summary>
         public bool AreAdjacent(Button a, Button b)
         {
-            // Получаем координаты из Tag плиток
-            if (a.Tag is not TilePosition pos1 || b.Tag is not TilePosition pos2)
-                return false;
+            try
+            {
+                if (a?.Tag is not TilePosition pos1 || b?.Tag is not TilePosition pos2)
+                    return false;
 
-            // Вычисляем разницу по координатам
-            int dx = Math.Abs(pos1.X - pos2.X);
-            int dy = Math.Abs(pos1.Y - pos2.Y);
+                int dx = Math.Abs(pos1.X - pos2.X);
+                int dy = Math.Abs(pos1.Y - pos2.Y);
 
-            // Соседние плитки имеют разницу координат (1,0) или (0,1)
-            return (dx + dy) == 1;
+                return (dx + dy) == 1;
+            }
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Error checking tile adjacency", ex);
+            }
         }
 
         /// <summary>
         /// Обрабатывает попытку обмена двух плиток
         /// </summary>
         /// <returns>Количество удаленных плиток в результате обмена</returns>
-        public int HandleTileSwap(Button tile1, Button tile2, 
+        public int HandleTileSwap(Button tile1, Button tile2,
             IEnumerable<IEnumerable<Button>> grid, GameGrid gameGrid)
         {
-            // Проверяем, что плитки соседние
-            if (AreAdjacent(tile1, tile2))
+            try
             {
-                // Пробуем обменять плитки
-                gameGrid.SwapTiles(tile1, tile2);
+                if (tile1 == null || tile2 == null)
+                    throw new ArgumentNullException(tile1 == null ? nameof(tile1) : nameof(tile2));
 
-                // Проверяем, привел ли обмен к совпадениям
-                if (CheckMatches(grid, out bool[,] matchedTiles))
+                if (AreAdjacent(tile1, tile2))
                 {
-                    // Если есть совпадения - обрабатываем цепную реакцию
-                    int removedCount = CountRemovedTiles(matchedTiles);
-                    removedCount += ProcessMatches(grid, gameGrid);
-                    return removedCount;
-                }
-                else
-                {
-                    // Если нет совпадений - откатываем обмен
+                    // Используем ход
+                    UseMove();
+
                     gameGrid.SwapTiles(tile1, tile2);
-                    return 0;
+
+                    if (CheckMatches(grid, out bool[,] matchedTiles))
+                    {
+                        int removedCount = CountRemovedTiles(matchedTiles);
+                        removedCount += ProcessMatches(grid, gameGrid);
+                        return removedCount;
+                    }
+                    else
+                    {
+                        gameGrid.SwapTiles(tile1, tile2);
+                        return 0;
+                    }
                 }
+                return 0;
             }
-            return 0;
+            catch (Exception ex)
+            {
+                throw new TileOperationException("Error handling tile swap", ex);
+            }
+        }
+
+        /// <summary>
+        /// Использует один ход
+        /// </summary>
+        private void UseMove()
+        {
+            MovesLeft--;
+
+            if (MovesLeft <= 0)
+            {
+                CurrentState = GameState.GameOver;
+                throw new GameInitializationException("No moves left - game over!");
+            }
         }
 
         /// <summary>
@@ -271,12 +356,11 @@ namespace Match3GameCS
         /// </summary>
         private Color? GetButtonColor(Button button)
         {
-            // Преобразуем Background в SolidColorBrush и извлекаем цвет
-            if (button.Background is SolidColorBrush brush)
+            if (button?.Background is SolidColorBrush brush)
             {
                 return brush.Color;
             }
-            return null; // Прозрачная плитка
+            return null;
         }
 
         /// <summary>
@@ -285,9 +369,11 @@ namespace Match3GameCS
         private void SetButtonColor(Button button, Color? color)
         {
             button.Background = color.HasValue
-                ? new SolidColorBrush(color.Value)  // Устанавливаем цвет
-                : Brushes.Transparent;              // Или делаем прозрачной
+                ? new SolidColorBrush(color.Value)
+                : Brushes.Transparent;
         }
+
+        // Свойства с валидацией
 
         /// <summary>
         /// Текущее состояние игры
@@ -295,10 +381,14 @@ namespace Match3GameCS
         public GameState CurrentState
         {
             get => currentState;
-            set => currentState = value;
+            set
+            {
+                if (!Enum.IsDefined(typeof(GameState), value))
+                    throw new ArgumentException("Invalid game state");
+                currentState = value;
+            }
         }
 
-        // Публичные свойства с геттерами и сеттерами
         /// <summary>
         /// Флаг начальной инициализации игры
         /// </summary>
@@ -306,6 +396,42 @@ namespace Match3GameCS
         {
             get => initializing;
             set => initializing = value;
+        }
+
+        /// <summary>
+        /// Оставшееся количество ходов
+        /// </summary>
+        public int MovesLeft
+        {
+            get => movesLeft;
+            private set
+            {
+                if (value < 0)
+                    throw new ArgumentException("Moves cannot be negative");
+                movesLeft = value;
+            }
+        }
+
+        /// <summary>
+        /// Максимальное количество ходов
+        /// </summary>
+        public int MaxMoves
+        {
+            get => maxMoves;
+            private set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Max moves must be positive");
+                maxMoves = value;
+            }
+        }
+
+        /// <summary>
+        /// Прогресс игры в процентах
+        /// </summary>
+        public double GameProgress
+        {
+            get => (double)(maxMoves - movesLeft) / maxMoves * 100.0;
         }
     }
 
