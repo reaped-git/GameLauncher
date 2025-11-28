@@ -30,9 +30,9 @@ namespace GameLauncher {
             eProcessing = 2,        // Игра обрабатывает совпадения (блокирует ввод)
         };
 
-        GameState currentState;     // Текущее состояние игры
 
     private:
+        GameState currentState;     // Текущее состояние игры
         Boolean initializing;       // Флаг инициализации
         std::shared_ptr<ScoreManager> scoreManager;
 

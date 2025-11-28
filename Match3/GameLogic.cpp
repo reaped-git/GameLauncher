@@ -106,7 +106,7 @@ namespace GameLauncher {
     /// <summary>
     /// Проверяет горизонтальные совпадения
     /// </summary>
-    Void GameLogic::CheckHorizontalMatches(array<Button^, 2>^ grid, 
+    Void GameLogic::CheckHorizontalMatches(array<Button^, 2>^ grid,
         Int64 gridSize, std::vector<std::vector<bool>>& matched)
     {
         ForEachGrid(grid, gridSize, [&](Int64 i, Int64 j, array<Button^, 2>^ gridRef) {
@@ -169,12 +169,12 @@ namespace GameLauncher {
     /// </summary>
     Void GameLogic::DropTiles(array<Button^, 2>^ grid, Int64 gridSize)
     {
-        for (Int64 j = 0; j < gridSize; j++) 
+        for (Int64 j = 0; j < gridSize; j++)
         {
             Int64 emptyRow = gridSize - 1;
-            for (Int64 i = gridSize - 1; i >= 0; i--) 
+            for (Int64 i = gridSize - 1; i >= 0; i--)
             {
-                if (grid[i, j]->BackColor != Color::Transparent) 
+                if (grid[i, j]->BackColor != Color::Transparent)
                 {
                     if (i != emptyRow) {
                         grid[emptyRow, j]->BackColor = grid[i, j]->BackColor;
@@ -293,21 +293,21 @@ namespace GameLauncher {
         return count;
     }
 
-}
 
-std::string GetGameStateString(const GameLauncher::GameLogic& gameLogic)
-{
-    using namespace GameLauncher;
-    switch (gameLogic.currentState)
+
+    std::string GetGameStateString(const GameLauncher::GameLogic& gameLogic)
     {
-    case GameLogic::GameState::eInitializing:
-        return "Initializing";
-    case GameLogic::GameState::ePlaying:
-        return "Playing";
-    case GameLogic::GameState::eProcessing:
-        return "Processing";
-    default:
+        switch (gameLogic.currentState)
+        {
+        case GameLogic::GameState::eInitializing:
+            return "Initializing";
+        case GameLogic::GameState::ePlaying:
+            return "Playing";
+        case GameLogic::GameState::eProcessing:
+            return "Processing";
+        default:
+            return "Unknown";
+        }
         return "Unknown";
     }
-    return "Unknown";
 }
