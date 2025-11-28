@@ -1,5 +1,6 @@
 ﻿namespace BattleshipCS;
-public class GameManager
+
+public class GameManager : IDisposable
 {
     private readonly Player player1;
     private readonly Player player2;
@@ -7,19 +8,39 @@ public class GameManager
     private bool gameOver;
     private readonly UserInterface userInterface;
 
+    // Свойства с публичными геттерами и приватными сеттерами
+    public Player CurrentPlayer => currentPlayer;
+    public Player Player1 => player1;
+    public Player Player2 => player2;
+    public bool IsGameOver => gameOver;
+
     public GameManager(int boardSize)
     {
-        gameOver = false;
-        userInterface = new UserInterface(this);
+        try
+        {
+            gameOver = false;
+            userInterface = new UserInterface(this);
 
-        player1 = new HumanPlayer("Игрок 1", boardSize);
-        player2 = new AIPlayer("Компьютер", boardSize);
+            player1 = new HumanPlayer("Игрок 1", boardSize);
+            player2 = new AIPlayer("Компьютер", boardSize);
 
-        currentPlayer = player1;
+            currentPlayer = player1;
 
-        // Устанавливаем ссылки на поля противников
-        player1.SetEnemyBoard(player2.MyBoard);
-        player2.SetEnemyBoard(player1.MyBoard);
+            // Устанавливаем ссылки на поля противников
+            player1.SetEnemyBoard(player2.MyBoard);
+            player2.SetEnemyBoard(player1.MyBoard);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Ошибка инициализации GameManager", ex);
+        }
+    }
+
+    // Реализация IDisposable для демонстрации using
+    public void Dispose()
+    {
+        Console.WriteLine("GameManager освобождает ресурсы...");
+        // Здесь могла бы быть реальная логика освобождения ресурсов
     }
 
     public void SetupGame()
@@ -114,8 +135,4 @@ public class GameManager
         Console.WriteLine();
         userInterface.DisplayBoards(currentPlayer);
     }
-
-    public Player CurrentPlayer => currentPlayer;
-    public Player Player1 => player1;
-    public Player Player2 => player2;
 }

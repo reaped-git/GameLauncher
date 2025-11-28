@@ -1,4 +1,5 @@
-﻿namespace BattleshipCS;
+﻿// HumanPlayer.cs
+namespace BattleshipCS;
 
 public class HumanPlayer : Player
 {
@@ -101,8 +102,20 @@ public class HumanPlayer : Player
 
     private bool TryPlaceShip(int size, int row, int col, bool horizontal)
     {
-        var ship = new Ship(size, (row, col), horizontal);
-        return MyBoard.PlaceShip(ship);
+        // Использование using для освобождения ресурсов (если бы были disposable ресурсы)
+        using (var scope = new OperationScope("Размещение корабля"))
+        {
+            try
+            {
+                var ship = new Ship(size, (row, col), horizontal);
+                return MyBoard.PlaceShip(ship);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при размещении корабля: {ex.Message}");
+                return false;
+            }
+        }
     }
 
     public override (int, int) MakeMove()
@@ -153,5 +166,22 @@ public class HumanPlayer : Player
             Console.WriteLine($"Ошибка: число должно быть в диапазоне от {minValue} до {maxValue}!");
         }
         return value;
+    }
+}
+
+// Вспомогательный класс для демонстрации using
+internal class OperationScope : IDisposable
+{
+    private readonly string _operationName;
+
+    public OperationScope(string operationName)
+    {
+        _operationName = operationName;
+        Console.WriteLine($"Начало операции: {_operationName}");
+    }
+
+    public void Dispose()
+    {
+        Console.WriteLine($"Завершение операции: {_operationName}");
     }
 }
