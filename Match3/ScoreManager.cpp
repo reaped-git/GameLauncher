@@ -7,16 +7,68 @@ namespace GameLauncher {
     /// </summary>
     /// <param name="scoreLabel">Метка для отображения счета</param>
     ScoreManager::ScoreManager()
+        : currentScore(0), playerName("Player")
     {
-        currentScore = 0;
-        FormatScore(currentScore);
-        // Инициализация словаря бонусов
         bonuses = { {
-             { 15, 5 },  // 15+ плиток: множитель 5
-             { 10, 3 },  // 10+ плиток: множитель 3  
-             { 5,  2 }   // 5+ плиток:  множитель 2
+             { 15, 5 },
+             { 10, 3 },
+             { 5,  2 }
          } };
     }
+
+    ScoreManager::ScoreManager(const std::string& name)
+        : currentScore(0), playerName(name)
+    {
+        bonuses = { {
+             { 15, 5 },
+             { 10, 3 },
+             { 5,  2 }
+         } };
+    }
+
+    // Конструктор копирования
+    ScoreManager::ScoreManager(const ScoreManager& other)
+        : bonuses(other.bonuses),
+        currentScore(other.currentScore),
+        playerName(other.playerName)
+    {
+    }
+
+    // Оператор присваивания
+    ScoreManager& ScoreManager::operator=(const ScoreManager& other)
+    {
+        if (this != &other)
+        {
+            bonuses = other.bonuses;
+            currentScore = other.currentScore;
+            playerName = other.playerName;
+        }
+        return *this;
+    }
+
+    ScoreManager & ScoreManager::operator+=(Int64 points)
+    {
+        currentScore += points;
+        return *this;
+    }
+
+    ScoreManager ScoreManager::operator+(Int64 points) const
+    {
+        ScoreManager result(*this);
+        result.currentScore += points;
+        return result;
+    }
+
+    bool ScoreManager::operator>(const ScoreManager& other) const
+    {
+        return currentScore > other.currentScore;
+    }
+
+    bool ScoreManager::operator<(const ScoreManager& other) const
+    {
+        return currentScore < other.currentScore;
+    }
+
 
     /// <summary>
     /// Добавляет очки к текущему счету
@@ -89,5 +141,28 @@ namespace GameLauncher {
             String^ score = AddScore(totalScore);
             return score;
         }
+    }
+
+    void ScoreManager::SetPlayerName(const std::string& name)
+    {
+        playerName = name; // Простое присваивание
+    }
+
+    std::string ScoreManager::GetPlayerName() const
+    {
+        return playerName;
+    }
+
+    std::string ScoreManager::GetFullScoreInfo() const
+    {
+        // Конкатенация строк
+        std::string info = "Player: " + playerName + " | Score: " +
+            std::to_string(currentScore);
+        return info;
+    }
+
+    ScoreManager::operator std::string() const
+    {
+        return GetFullScoreInfo();
     }
 }

@@ -125,6 +125,7 @@
     <ClCompile Include="Match3\Application.cpp" />
     <ClCompile Include="Match3\GameGrid.cpp" />
     <ClCompile Include="Match3\GameLogic.cpp" />
+    <ClCompile Include="Match3\GameManager.cpp" />
     <ClCompile Include="Match3\InputHandler.cpp" />
     <ClCompile Include="Match3\Main.cpp" />
     <ClCompile Include="Match3\Match3Game.cpp" />
@@ -134,6 +135,7 @@
     <ClInclude Include="Match3\Application.hpp" />
     <ClInclude Include="Match3\GameGrid.hpp" />
     <ClInclude Include="Match3\GameLogic.hpp" />
+    <ClInclude Include="Match3\GameManager.hpp" />
     <ClInclude Include="Match3\InputHandler.hpp" />
     <ClInclude Include="Match3\Match3Game.hpp" />
     <ClInclude Include="Match3\ScoreManager.hpp" />

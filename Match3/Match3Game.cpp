@@ -11,6 +11,8 @@ namespace GameLauncher {
     {
         InitializeComponent();
 
+        auto gameManager = std::make_shared<ExtendedGameManager>("1.0", 1, "Classic");
+
         // Инициализация игровых компонентов
         this->gameGrid = gcnew GameGrid(background, GameGrid::DEFAULT_GRID_SIZE, GameGrid::DEFAULT_TILE_SIZE);
         this->scoreManager = new ScoreManager();

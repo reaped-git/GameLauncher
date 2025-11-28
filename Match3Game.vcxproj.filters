@@ -36,6 +36,9 @@
     <ClCompile Include="Match3\ScoreManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Match3\GameManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Match3\Application.hpp">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Match3\ScoreManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Match3\GameManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

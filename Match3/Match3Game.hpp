@@ -4,6 +4,7 @@
 #include "GameLogic.hpp"
 #include "InputHandler.hpp"
 #include "ScoreManager.hpp"
+#include "GameManager.hpp" 
 
 namespace GameLauncher {
 

@@ -4,6 +4,8 @@
 #include "ScoreManager.hpp"
 #include <vector>
 #include <functional>
+#include <memory>
+#include <string>
 
 namespace GameLauncher {
 
@@ -28,20 +30,33 @@ namespace GameLauncher {
             eProcessing = 2,        // Игра обрабатывает совпадения (блокирует ввод)
         };
 
+        GameState currentState;     // Текущее состояние игры
+
     private:
         Boolean initializing;       // Флаг инициализации
-        GameState currentState;     // Текущее состояние игры
+        std::shared_ptr<ScoreManager> scoreManager;
 
     public:
         /// <summary>
         /// Конструктор игровой логики
         /// </summary>
         GameLogic();
+        GameLogic(std::shared_ptr<ScoreManager> scoreMgr);
+        GameLogic(const GameLogic& other);
+
+        GameLogic& operator=(const GameLogic& other);
+
+        bool operator==(const GameLogic& other) const;
+        bool operator!=(const GameLogic& other) const;
+        GameLogic operator+(const GameLogic& other) const;
 
         /// <summary>
         /// Деструктор
         /// </summary>
         ~GameLogic() = default;
+
+        // Дружественная функция
+        friend std::string GetGameStateString(const GameLogic& gameLogic);
 
         /// <summary>
         /// Проверяет и удаляет совпадения (3+ в ряд по горизонтали или вертикали)

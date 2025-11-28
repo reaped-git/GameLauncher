@@ -6,13 +6,62 @@ namespace GameLauncher {
     /// Конструктор игровой логики
     /// </summary>
     GameLogic::GameLogic()
+        : initializing(true), currentState(GameState::eInitializing),
+        scoreManager(std::make_shared<ScoreManager>())
     {
-        initializing = true;
-        currentState = GameState::eInitializing;
     }
 
+    GameLogic::GameLogic(std::shared_ptr<ScoreManager> scoreMgr)
+        : initializing(true), currentState(GameState::eInitializing),
+        scoreManager(scoreMgr)
+    {
+    }
+
+    // Конструктор копирования
+    GameLogic::GameLogic(const GameLogic& other)
+        : initializing(other.initializing),
+        currentState(other.currentState),
+        scoreManager(other.scoreManager) // shared_ptr копируется
+    {
+    }
+
+    // Оператор присваивания
+    GameLogic& GameLogic::operator=(const GameLogic& other)
+    {
+        if (this != &other)
+        {
+            initializing = other.initializing;
+            currentState = other.currentState;
+            scoreManager = other.scoreManager;
+        }
+        return *this;
+    }
+
+    // Перегрузка операторов
+    bool GameLogic::operator==(const GameLogic& other) const
+    {
+        return initializing == other.initializing &&
+            currentState == other.currentState &&
+            scoreManager == other.scoreManager;
+    }
+
+    bool GameLogic::operator!=(const GameLogic& other) const
+    {
+        return !(*this == other);
+    }
+
+    GameLogic GameLogic::operator+(const GameLogic& other) const
+    {
+        GameLogic result(*this);
+        // Логика "сложения" состояний (для демонстрации)
+        if (other.currentState == GameState::eProcessing)
+            result.currentState = GameState::eProcessing;
+        return result;
+    }
+
+
     template<typename Func>
-    void GameLogic::ForEachMatched(Int64 gridSize, 
+    void GameLogic::ForEachMatched(Int64 gridSize,
         const std::vector<std::vector<bool>>& matched, Func func) {
         for (Int64 i = 0; i < gridSize; i++) {
             for (Int64 j = 0; j < gridSize; j++) {
@@ -244,4 +293,21 @@ namespace GameLauncher {
         return count;
     }
 
+}
+
+std::string GetGameStateString(const GameLauncher::GameLogic& gameLogic)
+{
+    using namespace GameLauncher;
+    switch (gameLogic.currentState)
+    {
+    case GameLogic::GameState::eInitializing:
+        return "Initializing";
+    case GameLogic::GameState::ePlaying:
+        return "Playing";
+    case GameLogic::GameState::eProcessing:
+        return "Processing";
+    default:
+        return "Unknown";
+    }
+    return "Unknown";
 }

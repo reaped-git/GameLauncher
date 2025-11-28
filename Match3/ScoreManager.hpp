@@ -1,6 +1,9 @@
 ﻿#pragma once
 
 #include <array>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace GameLauncher {
 
@@ -18,6 +21,7 @@ namespace GameLauncher {
         static const Int64 SCORE_PER_TILE = 10;
         std::array<std::pair<Int64, Int64>, 3> bonuses;
         Int64 currentScore;       // Текущее количество очков
+        std::string playerName;
 
     public:
         /// <summary>
@@ -25,6 +29,17 @@ namespace GameLauncher {
         /// </summary>
         /// <param name="scoreLabel">Метка для отображения счета</param>
         ScoreManager();
+        ScoreManager(const std::string& name);
+        ScoreManager(const ScoreManager& other);
+
+        // Оператор присваивания
+        ScoreManager& operator=(const ScoreManager& other);
+
+        // Перегрузка операторов
+        ScoreManager& operator+=(Int64 points);
+        ScoreManager operator+(Int64 points) const;
+        bool operator>(const ScoreManager& other) const;
+        bool operator<(const ScoreManager& other) const;
 
         /// <summary>
         /// Деструктор
@@ -63,6 +78,14 @@ namespace GameLauncher {
         /// Обновляет отображение счета на форме
         /// </summary>
         String^ FormatScore(Int64 currentScore);
+
+        // Работа с std::string
+        void SetPlayerName(const std::string& name);
+        std::string GetPlayerName() const;
+        std::string GetFullScoreInfo() const;
+
+        // Оператор вывода в строку
+        operator std::string() const;
     };
 
 }
